@@ -1,8 +1,14 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class PlanoTratamento(models.Model):
     # Campos obrigatórios para o contexto do plano
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        default=1
+    )
     titulo = models.CharField(max_length=255)
     data_criacao = models.DateTimeField(auto_now_add=True)
     
