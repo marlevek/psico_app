@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import PlanoTratamento
 from openai import OpenAI # Importar a classe OpenAI
 
-'''class PlanoTratamentoSerializer(serializers.ModelSerializer):
+class PlanoTratamentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanoTratamento
         fields = '__all__'
@@ -60,35 +60,4 @@ from openai import OpenAI # Importar a classe OpenAI
         return PlanoTratamento.objects.create(
             **validated_data, 
             feedback_ia=feedback_ia
-        )'''
-        
-        
-# psico_saas/serializers.py
-
-import os
-from rest_framework import serializers
-from .models import PlanoTratamento
-# Mantenha a importação da OpenAI, mesmo que não seja usada
-from openai import OpenAI 
-
-class PlanoTratamentoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PlanoTratamento
-        fields = '__all__'
-        read_only_fields = ['feedback_ia', 'data_criacao']
-        
-    def gerar_prompt(self, valid_data):
-        # Mantenha esta função, mas ela não será chamada
-        pass 
-
-    def create(self, validated_data):
-        # CÓDIGO TEMPORÁRIO DE TESTE: IGNORAR A CHAMADA DA API
-        
-        # 1. Simula o feedback da IA
-        feedback_ia_teste = "TESTE DE DEPLOY: A API Gunicorn carregou com sucesso. O erro não está no startup."
-
-        # 2. Salva o Plano no PostgreSQL (sem chamar a API externa)
-        return PlanoTratamento.objects.create(
-            **validated_data, 
-            feedback_ia=feedback_ia_teste
         )
