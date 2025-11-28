@@ -1,0 +1,20 @@
+Variáveis de ambiente sensíveis (CHAVES SECRETAS!)
+.env
+
+# Diretório do ambiente virtual Python
+venv/
+
+# Arquivos do Django e Python
+__pycache__/
+*.pyc
+*.sqlite3 # Seu banco de dados local (que será substituído pelo Postgres no Railway)
+/db.sqlite3
+
+# Diretórios de arquivos estáticos gerados (static files)
+/staticfiles/ 
+/media/
+
+# Arquivos gerados pelo sistema operacional e IDEs
+.DS_Store # macOS
+.vscode/ # Configurações do VS Code (opcional, mas recomendado)
+*~
