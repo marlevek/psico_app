@@ -22,8 +22,30 @@ class PlanoTratamentoSerializer(serializers.ModelSerializer):
         
         Sua tarefa é revisar este plano. Se ele estiver conciso, devolva 'OK'. Se precisar de ajustes ou for muito vago, devolva um feedback estruturado e construtivo.
         """
+        
+        def create(self, validated_data):
+            # Versão SEGURA para teste de CRUD no PostgreSQL
+            # O campo feedback_ia será salvo como NULL
+            print("Salvando plano sem chamada à API para teste de estabilidade.")
+            return PlanoTratamento.objects.create(**validated_data)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
-    def create(self, validated_data):
+    '''def create(self, validated_data):
         # 1. INICIALIZAÇÃO DA API (CORREÇÃO CRÍTICA):
         # Mova a inicialização para DENTRO do método para garantir que a 
         # OPENAI_API_KEY do Railway é lida.
@@ -60,4 +82,4 @@ class PlanoTratamentoSerializer(serializers.ModelSerializer):
         return PlanoTratamento.objects.create(
             **validated_data, 
             feedback_ia=feedback_ia
-        )
+        )'''
