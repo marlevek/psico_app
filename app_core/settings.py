@@ -77,6 +77,7 @@ WSGI_APPLICATION = 'app_core.wsgi.application'
 
 # CONFIGURAÇÃO DE DATABASES
 # Database Configuration
+# Database Configuration - Versão Simplificada
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
@@ -84,6 +85,10 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
+
+# Se for PostgreSQL, adicionar SSL
+if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
 # Forçar SSL se estiver usando PostgreSQL externo
 if 'postgres' in DATABASES['default']['ENGINE']:

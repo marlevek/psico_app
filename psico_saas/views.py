@@ -6,11 +6,13 @@ from .serializers import PlanoTratamentoSerializer
 
 class PlanoTratamentoViewSet(viewsets.ModelViewSet):
     '''
-    Endpoint da API que permite criar, visualizar, atualizar e deleter planos de tratamento
+    Endpoint da API que permite criar, visualizar, atualizar e deletar planos de tratamento
     '''
-    # CORREÇÃO: Usar get_queryset() para ADIAR a query do banco de dados 
+    queryset = PlanoTratamento.objects.all()  # ⬅️ ADICIONE ESTA LINHA
+    serializer_class = PlanoTratamentoSerializer
+    
     def get_queryset(self):
-        # Esta função só executa quando o servidor já está a funcionar
+        # Método opcional para customizações
         return PlanoTratamento.objects.all().order_by('-data_criacao')
         
-    serializer_class = PlanoTratamentoSerializer
+   
