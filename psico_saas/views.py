@@ -8,7 +8,7 @@ class PlanoTratamentoViewSet(viewsets.ModelViewSet):
     '''
     Endpoint da API que permite criar, visualizar, atualizar e deletar planos de tratamento
     '''
-    queryset = PlanoTratamento.objects.all()  # ⬅️ ADICIONE ESTA LINHA
+    #queryset = PlanoTratamento.objects.all()  # ⬅️ ADICIONE ESTA LINHA
     serializer_class = PlanoTratamentoSerializer
     
     def get_queryset(self):

@@ -4,13 +4,13 @@ from django.urls import path, include
 
 
 router = DefaultRouter()
-router.register(r'planos', PlanoTratamentoViewSet)
+router.register(r'planos', PlanoTratamentoViewSet, basename='plano')
 
 urlpatterns = router.urls 
 
-urlpatterns = [
-    path('', include(router.urls)),
-]
+#urlpatterns = [
+    #path('', include(router.urls)),
+#]
 
 
 
