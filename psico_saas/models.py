@@ -1,7 +1,6 @@
 from django.db import models
 
 
-
 class PlanoTratamento(models.Model):
     # Campos obrigatórios para o contexto do plano
     titulo = models.CharField(max_length=255)
