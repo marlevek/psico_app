@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from rest_framework import viewsets 
-from .models import PlanoTratamento # <-- AQUI ESTÁ O PRÓXIMO PONTO DE FALHA
+#from rest_framework import viewsets 
+from .models import PlanoTratamento 
 from .serializers import PlanoTratamentoSerializer 
+
 
 class PlanoTratamentoViewSet(viewsets.ModelViewSet):
     '''
