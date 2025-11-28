@@ -24,28 +24,45 @@ class PlanoTratamentoSerializer(serializers.ModelSerializer):
         """
         
         def create(self, validated_data):
-            # Versão SEGURA para teste de CRUD no PostgreSQL
-            # O campo feedback_ia será salvo como NULL
-            print("Salvando plano sem chamada à API para teste de estabilidade.")
-            return PlanoTratamento.objects.create(**validated_data)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        # 1. INICIALIZAÇÃO DA API: A forma correta para produção (dentro do método)
+            try:
+                chave_api = os.environ.get('OPENAI_API_KEY')
+                if not chave_api:
+                    # Esta exceção só será levantada se a variável não estiver no Railway
+                    raise ValueError("OPENAI_API_KEY não configurada no ambiente.")
+                    
+                client = OpenAI(api_key=chave_api)
 
-    '''def create(self, validated_data):
+                # 2. Geração do Prompt
+                prompt = self.gerar_prompt(validated_data)
+
+                # 3. Chamada da API Externa
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo", # Modelo rápido e eficiente
+                    messages=[
+                        {"role": "system", "content": "Você é um revisor de planos de tratamento especializado em TCC. Seu feedback deve ser construtivo e breve."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.7 # Adiciona criatividade controlada
+                )
+                
+                # 4. Extrair o Feedback
+                feedback_ia = response.choices[0].message.content
+                
+            except ValueError as e:
+                feedback_ia = f"ERRO INTERNO: Falha na API da IA. Verifique as variáveis de ambiente. Detalhe: {e}"
+            except Exception as e:
+                # Captura erros de rede ou da própria API da OpenAI
+                feedback_ia = f"ERRO NA CHAMADA DA API EXTERNA. Detalhe: {e}"
+
+            # 5. Salvar o Plano COM o Feedback da IA
+            return PlanoTratamento.objects.create(
+                **validated_data, 
+                feedback_ia=feedback_ia
+            )    
+        
+        
+        ''''def create(self, validated_data):
         # 1. INICIALIZAÇÃO DA API (CORREÇÃO CRÍTICA):
         # Mova a inicialização para DENTRO do método para garantir que a 
         # OPENAI_API_KEY do Railway é lida.
