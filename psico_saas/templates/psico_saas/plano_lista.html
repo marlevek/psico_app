@@ -1,228 +1,438 @@
 {% extends 'psico_saas/base.html' %}
 {% load static %}
 
-{% block title %}Planos de Tratamento - Psico SaaS{% endblock %}
+{% block title %}Planos de Tratamento - Psico Assist{% endblock %}
 
 {% block content %}
-<div class="page-header fade-in">
-    <div class="header-content">
-        <div>
-            <h1>📋 Planos de Tratamento</h1>
-            <p class="text-muted">Gerencie todos os planos terapêuticos dos seus pacientes</p>
-        </div>
-        <a href="{% url 'plano_form' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i>
-            Novo Plano
-        </a>
-    </div>
-</div>
-
-<!-- Filtros e Busca -->
-<div class="card fade-in mb-4">
-    <div class="filter-section">
-        <div class="row g-3">
-            <div class="col-md-6">
-                <input type="text" class="form-control" placeholder="🔍 Buscar por paciente ou título..." id="searchInput">
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" id="statusFilter">
-                    <option value="">Todos os status</option>
-                    <option value="ativo">Ativos</option>
-                    <option value="concluido">Concluídos</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button class="btn btn-outline w-100" onclick="clearFilters()">
-                    <i class="bi bi-arrow-clockwise"></i>
-                    Limpar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Lista de Planos -->
-<div class="card fade-in">
+<div class="card">
     <div class="card-header">
-        <h3 class="mb-0">Meus Planos ({{ planos|length }})</h3>
+        <div class="header-content">
+            <div class="title-section">
+                <h2 class="card-title">Planos de Tratamento</h2>
+                <p class="plan-manager">Gerencie todos os planos terapêuticos dos seus pacientes</p>
+            </div>
+        </div>
     </div>
-    
-    {% if planos %}
-    <!-- Versão Desktop - Tabela (apenas desktop) -->
-    <div class="d-none d-lg-block">
-        <div class="table-responsive">
-            <table class="table" id="planosTable">
-                <thead>
-                    <tr>
-                        <th>Paciente</th>
-                        <th>Título do Plano</th>
-                        <th>Data de Início</th>
-                        <th>Status</th>
-                        <th>Última Atualização</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for plano in planos %}
-                    <tr class="plano-row">
-                        <td>
-                            <div class="patient-info">
+    <div class="card-body">
+        <!-- Filtros e Busca -->
+        <div class="filters-section">
+            <div class="search-box">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Buscar por paciente ou título...">
+                    <button class="btn btn-primary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="filters-row">
+                <select class="form-control form-select">
+                    <option>Todos os planos</option>
+                    <option>Recentes</option>
+                    <option>Antigos</option>
+                </select>
+                <button class="btn btn-outline">Limpar</button>
+            </div>
+        </div>
+
+        <!-- Lista de Planos -->
+        <div class="plano-list-section">
+            <h3 class="section-title">Meus Planos ({{ planos|length }})</h3>
+
+            {% if planos %}
+            <!-- Desktop Table -->
+            <div class="table-responsive desktop-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Título do Plano</th>
+                            <th>Data de Início</th>
+                            <th>Abordagem</th>
+                            <th>Data de Criação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plano in planos %}
+                        <tr>
+                            <td>
                                 <strong>{{ plano.paciente.nome_completo }}</strong>
+                                <br>
                                 <small class="text-muted">Idade: {{ plano.paciente.get_idade }} anos</small>
-                            </div>
-                        </td>
-                        <td>
-                            <strong>{{ plano.titulo }}</strong>
-                            <br>
-                            <small class="text-muted">{{ plano.abordagem|truncatewords:5 }}</small>
-                        </td>
-                        <td>
-                            {{ plano.data_inicio_prevista|date:"d/m/Y" }}
-                        </td>
-                        <td>
+                            </td>
+                            <td>
+                                <strong>{{ plano.titulo }}</strong>
+                            </td>
+                            <td>{{ plano.data_inicio_prevista|date:"d/m/Y" }}</td>
+                            <td>
+                                <span class="status-badge status-active">
+                                    <i class="bi bi-journal-text"></i>
+                                    {{ plano.abordagem|truncatechars:30 }}
+                                </span>
+                            </td>
+                            <td>{{ plano.data_criacao|date:"d/m/Y" }}</td>
+                            <td>
+                                <div class="actions-buttons">
+                                    <a href="{% url 'editar_plano' pk=plano.pk %}" class="btn btn-sm btn-outline">
+                                        <i class="bi bi-pencil"></i>
+                                        Editar
+                                    </a>
+                                    <!-- Na tabela desktop -->
+                                    <a href="{% url 'ver_plano' pk=plano.pk %}" class="btn btn-sm btn-outline">
+                                        <i class="bi bi-eye"></i>
+                                        Ver
+                                    </a>
+
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Cards -->
+            <div class="mobile-cards">
+                {% for plano in planos %}
+                <div class="plano-card">
+                    <div class="plano-card-header">
+                        <div class="patient-info">
+                            <h4>{{ plano.paciente.nome_completo }}</h4>
+                            <p class="patient-age">Idade: {{ plano.paciente.get_idade }} anos</p>
                             <span class="status-badge status-active">
-                                <i class="bi bi-circle-fill"></i>
-                                Ativo
+                                <i class="bi bi-journal-text"></i>
+                                Abordagem
                             </span>
-                        </td>
-                        <td>
-                            {{ plano.data_atualizacao|date:"d/m/Y" }}
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <a href="{% url 'editar_plano' plano.id %}" class="btn btn-sm btn-outline" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="#" class="btn btn-sm btn-outline" title="Ver Detalhes">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <form method="post" action="{% url 'excluir_plano' plano.id %}" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este plano?')">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline text-danger" title="Excluir">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                        </div>
+                    </div>
+
+                    <div class="plano-card-body">
+                        <h5>{{ plano.titulo }}</h5>
+                        <p class="plano-approach">{{ plano.abordagem|truncatechars:100 }}</p>
+
+                        <div class="plano-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Início Previsto:</span>
+                                <span class="detail-value">{{ plano.data_inicio_prevista|date:"d/m/Y" }}</span>
                             </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Versão Mobile - Cards (tablet e mobile) -->
-    <div class="d-lg-none" id="planosCards">
-        {% for plano in planos %}
-        <div class="plano-card" data-search="{{ plano.paciente.nome_completo }} {{ plano.titulo }} {{ plano.abordagem }}">
-            <div class="card-header-mobile">
-                <div class="patient-mobile">
-                    <strong>{{ plano.paciente.nome_completo }}</strong>
-                    <span class="age-mobile">{{ plano.paciente.get_idade }} anos</span>
-                </div>
-                <span class="status-badge status-active">
-                    <i class="bi bi-circle-fill"></i>
-                    Ativo
-                </span>
-            </div>
-            
-            <div class="card-body-mobile">
-                <h4>{{ plano.titulo }}</h4>
-                <p class="abordagem-mobile">{{ plano.abordagem|truncatewords:8 }}</p>
-                
-                <div class="plano-info-mobile">
-                    <div class="info-item">
-                        <i class="bi bi-calendar3"></i>
-                        <span>Início: {{ plano.data_inicio_prevista|date:"d/m/Y" }}</span>
+                            <div class="detail-item">
+                                <span class="detail-label">Criado em:</span>
+                                <span class="detail-value">{{ plano.data_criacao|date:"d/m/Y" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Frequência:</span>
+                                <span class="detail-value">{{ plano.frequencia_sessoes }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        <span>Atualizado: {{ plano.data_atualizacao|date:"d/m/Y" }}</span>
+
+                    <div class="plano-card-actions">
+                        <a href="{% url 'editar_plano' pk=plano.pk %}" class="btn btn-sm btn-outline">
+                            <i class="bi bi-pencil"></i>
+                            Editar
+                        </a>
+                      
+                                    <a href="{% url 'ver_plano' pk=plano.pk %}" class="btn btn-sm btn-outline">
+                                        <i class="bi bi-eye"></i>
+                                        Ver
+                                    </a>
                     </div>
                 </div>
-                
-                <div class="action-buttons-mobile">
-                    <a href="{% url 'editar_plano' plano.id %}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-pencil"></i>
-                        Editar
-                    </a>
-                    <a href="#" class="btn btn-sm btn-outline">
-                        <i class="bi bi-eye"></i>
-                        Ver
-                    </a>
-                    <form method="post" action="{% url 'excluir_plano' plano.id %}" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este plano?')">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline text-danger">
-                            <i class="bi bi-trash"></i>
-                            Excluir
-                        </button>
-                    </form>
-                </div>
+                {% endfor %}
             </div>
+
+            {% else %}
+            <div class="empty-state text-center">
+                <i class="bi bi-journal-text"
+                    style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                <p>Nenhum plano de tratamento criado ainda.</p>
+                <a href="{% url 'plano_form' %}" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-circle"></i>
+                    Criar Primeiro Plano
+                </a>
+            </div>
+            {% endif %}
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <h3>Nenhum plano criado ainda</h3>
-        <p class="text-muted">Comece criando seu primeiro plano de tratamento para um paciente.</p>
-        <a href="{% url 'plano_form' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i>
-            Criar Primeiro Plano
-        </a>
-    </div>
-    {% endif %}
-</div>
-
-<!-- Estatísticas Rápidas -->
-<div class="dashboard-grid mt-4">
-    <div class="card stats-card">
-        <div class="stats-number">{{ planos|length }}</div>
-        <div class="stats-label">Total de Planos</div>
-    </div>
-    <div class="card stats-card">
-        <div class="stats-number">{{ planos|length }}</div>
-        <div class="stats-label">Planos Ativos</div>
-    </div>
-    <div class="card stats-card">
-        <div class="stats-number">0</div>
-        <div class="stats-label">Concluídos</div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-// Filtro e busca em tempo real - FUNCIONANDO PARA AMBAS AS VERSÕES
-document.getElementById('searchInput').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    
-    // Filtra tabela desktop
-    const rows = document.querySelectorAll('#planosTable .plano-row');
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-    });
-    
-    // Filtra cards mobile
-    const cards = document.querySelectorAll('#planosCards .plano-card');
-    cards.forEach(card => {
-        const searchData = card.getAttribute('data-search').toLowerCase();
-        card.style.display = searchData.includes(searchTerm) ? '' : 'none';
-    });
-});
+<style>
+    /* Header com título e descrição CENTRALIZADOS - Versão Agressiva */
+    .card-header {
+        text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
 
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('statusFilter').value = '';
-    
-    // Mostra todos os itens
-    const rows = document.querySelectorAll('#planosTable .plano-row');
-    rows.forEach(row => row.style.display = '');
-    
-    const cards = document.querySelectorAll('#planosCards .plano-card');
-    cards.forEach(card => card.style.display = '');
-}
-</script>
+    .header-content {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    .title-section {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        gap: 0.5rem !important;
+    }
+
+    .card-title {
+        margin-bottom: 0 !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    .plan-manager {
+        text-align: center !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /* Filtros e Busca */
+    .filters-section {
+        display: flex;
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .filters-row {
+        display: flex;
+        gap: var(--space-sm);
+        align-items: center;
+    }
+
+    .filters-row .form-control {
+        min-width: 150px;
+    }
+
+    .input-group {
+        display: flex;
+    }
+
+    .input-group .form-control {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .input-group .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    /* Tabela Desktop */
+    .desktop-table {
+        display: block;
+    }
+
+    .table {
+        width: 100%;
+        background: var(--surface);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+    }
+
+    .table th,
+    .table td {
+        padding: var(--space-sm);
+        text-align: left;
+        border-bottom: 1px solid var(--border-light);
+        vertical-align: middle;
+    }
+
+    .table th {
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .table tr:hover {
+        background: var(--surface-hover);
+    }
+
+    /* Botões de Ação */
+    .actions-buttons {
+        display: flex;
+        gap: var(--space-xs);
+        flex-wrap: nowrap;
+    }
+
+    .actions-buttons .btn {
+        white-space: nowrap;
+        font-size: 0.8rem;
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    /* Cards Mobile */
+    .mobile-cards {
+        display: none;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .plano-card {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius);
+        padding: var(--space-md);
+        box-shadow: var(--shadow);
+    }
+
+    .plano-card-header {
+        margin-bottom: var(--space-sm);
+    }
+
+    .patient-info h4 {
+        margin-bottom: 5px;
+        color: var(--primary);
+    }
+
+    .patient-age {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: var(--space-xs);
+    }
+
+    .plano-card-body {
+        margin-bottom: var(--space-md);
+    }
+
+    .plano-card-body h5 {
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+
+    .plano-approach {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: var(--space-sm);
+    }
+
+    .plano-details {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .detail-label {
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .detail-value {
+        color: var(--text-primary);
+    }
+
+    .plano-card-actions {
+        display: flex;
+        gap: var(--space-sm);
+        justify-content: flex-end;
+    }
+
+    .plano-card-actions .btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background: #f0fdf4;
+        color: var(--primary);
+        border: 1px solid #bbf7d0;
+    }
+
+    /* Responsividade */
+    @media (max-width: 1024px) {
+        .filters-section {
+            flex-direction: column;
+        }
+
+        .search-box {
+            min-width: 100%;
+        }
+
+        .filters-row {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .desktop-table {
+            display: none;
+        }
+
+        .mobile-cards {
+            display: flex;
+        }
+
+        .plano-card-actions {
+            flex-direction: column;
+        }
+
+        .plano-card-actions .btn {
+            flex: none;
+        }
+
+        /* Mobile Header */
+        .card-header {
+            text-align: left !important;
+            justify-content: flex-start !important;
+            align-items: flex-start !important;
+        }
+
+        .title-section {
+            align-items: flex-start !important;
+            text-align: left !important;
+        }
+
+        .card-title,
+        .plan-manager {
+            text-align: left !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .filters-row {
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .filters-row .form-control {
+            min-width: 100%;
+        }
+
+        .plano-card {
+            padding: var(--space-sm);
+        }
+    }
+</style>
 {% endblock %}

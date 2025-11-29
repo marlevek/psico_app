@@ -1,0 +1,299 @@
+{% extends 'psico_saas/base.html' %}
+{% load static %}
+
+{% block title %}Detalhes do Plano - {{ plano.titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div class="header-content">
+        <div>
+            <h1>📋 {{ plano.titulo }}</h1>
+            <p class="text-muted">Detalhes completos do plano de tratamento</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'editar_plano' pk=plano.pk %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i>
+                Editar Plano
+            </a>
+            <a href="{% url 'listar_planos' %}" class="btn btn-outline">
+                <i class="bi bi-arrow-left"></i>
+                Voltar para Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Informações do Paciente -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3 class="mb-0">👤 Informações do Paciente</h3>
+            </div>
+            <div class="card-body">
+                <div class="patient-details">
+                    <div class="detail-row">
+                        <div class="detail-item">
+                            <strong>Nome:</strong>
+                            <span>{{ plano.paciente.nome_completo }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Idade:</strong>
+                            <span>{{ plano.paciente.get_idade }} anos</span>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-item">
+                            <strong>Data de Nascimento:</strong>
+                            <span>{{ plano.paciente.data_nascimento|date:"d/m/Y"|default:"Não informada" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Contato de Emergência:</strong>
+                            <span>{{ plano.paciente.contato_emergencia|default:"Não informado" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diagnóstico Base -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3 class="mb-0">🎯 Diagnóstico Base / Hipótese</h3>
+            </div>
+            <div class="card-body">
+                <div class="content-section">
+                    {{ plano.diagnostico_base|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Metas de Tratamento -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3 class="mb-0">📈 Metas de Tratamento</h3>
+            </div>
+            <div class="card-body">
+                <div class="content-section">
+                    {{ plano.metas_tratamento|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Abordagem Terapêutica -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3 class="mb-0">💭 Abordagem Terapêutica</h3>
+            </div>
+            <div class="card-body">
+                <div class="content-section">
+                    {{ plano.abordagem|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Informações do Plano -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3 class="mb-0">📅 Informações do Plano</h3>
+            </div>
+            <div class="card-body">
+                <div class="plan-info">
+                    <div class="info-item">
+                        <strong>Data de Início Prevista:</strong>
+                        <span>{{ plano.data_inicio_prevista|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Frequência das Sessões:</strong>
+                        <span>{{ plano.frequencia_sessoes }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Data de Criação:</strong>
+                        <span>{{ plano.data_criacao|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Última Atualização:</strong>
+                        <span>{{ plano.data_criacao|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback da IA -->
+        {% if plano.feedback_ia %}
+        <div class="card fade-in mt-4">
+            <div class="card-header">
+                <h3 class="mb-0">🤖 Feedback da Inteligência Artificial</h3>
+            </div>
+            <div class="card-body">
+                <div class="feedback-ia">
+                    {{ plano.feedback_ia|linebreaks }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ações Rápidas -->
+        <div class="card fade-in mt-4">
+            <div class="card-header">
+                <h3 class="mb-0">⚡ Ações Rápidas</h3>
+            </div>
+            <div class="card-body">
+                <div class="quick-actions">
+                    <a href="{% url 'documentacao_form' %}" class="btn btn-outline btn-block">
+                        <i class="bi bi-journal-plus"></i>
+                        Nova Sessão
+                    </a>
+                    <a href="{% url 'tarefas_form' %}" class="btn btn-outline btn-block">
+                        <i class="bi bi-lightbulb"></i>
+                        Criar Exercício
+                    </a>
+                    <a href="{% url 'editar_plano' pk=plano.pk %}" class="btn btn-primary btn-block">
+                        <i class="bi bi-pencil"></i>
+                        Editar Plano
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    margin-bottom: var(--space-lg);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.patient-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.detail-row {
+    display: flex;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 200px;
+}
+
+.detail-item strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.detail-item span {
+    color: var(--text-secondary);
+}
+
+.content-section {
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.plan-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.info-item span {
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.btn-block {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+}
+
+.feedback-ia {
+    background: var(--background-alt);
+    padding: var(--space-md);
+    border-radius: var(--radius);
+    border-left: 4px solid var(--primary);
+    line-height: 1.6;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .header-actions {
+        justify-content: stretch;
+    }
+    
+    .header-actions .btn {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+    
+    .detail-item {
+        min-width: 100%;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-xs);
+    }
+    
+    .info-item span {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}

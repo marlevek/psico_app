@@ -10,6 +10,7 @@ urlpatterns = [
     path('planos/novo/', views.plano_form_view, name='plano_form'),  # ⬅️ ESTA ESTAVA FALTANDO
     path('planos/editar/<int:pk>/', views.plano_form_view, name='editar_plano'),
     path('planos/excluir/<int:pk>/', views.excluir_plano, name='excluir_plano'),
+    path('planos/ver/<int:pk>/', views.ver_plano_view, name='ver_plano'),
     
     # Documentação de Sessão
     path('documentacao/', views.documentacao_form_view, name='documentacao_form'),
