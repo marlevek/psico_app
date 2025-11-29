@@ -137,3 +137,30 @@ class TarefaExercicios(models.Model):
         verbose_name_plural = "Tarefas/Exercícios"
         
         
+class ConteudoEducacional(models.Model):
+    TIPOS_CONTEUDO = [
+        ('POST_REDES_SOCIAIS', 'Post para Redes Sociais'),
+        ('TEXTO_CONSULTORIO', 'Texto para Consultório'),
+        ('ARTIGO_BLOG', 'Artigo para Blog'),
+        ('MATERIAL_PACIENTE', 'Material para Paciente'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    titulo = models.CharField(max_length=255)
+    tipo_conteudo = models.CharField(max_length=50, choices=TIPOS_CONTEUDO)
+    tema_principal = models.CharField(max_length=255)
+    publico_alvo = models.CharField(max_length=100, blank=True, null=True)
+    tom_voz = models.CharField(max_length=100, default='Profissional e acolhedor')
+    palavras_chave = models.TextField(blank=True, null=True)
+    
+    # Saída da IA
+    conteudo_gerado = models.TextField(blank=True, null=True)
+    sugestoes_titulos = models.TextField(blank=True, null=True)
+    hashtags = models.TextField(blank=True, null=True)
+    sugestoes_imagens = models.TextField(blank=True, null=True)  # NOVO CAMPO
+    
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.titulo} ({self.get_tipo_conteudo_display()})"

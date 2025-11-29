@@ -22,7 +22,7 @@
                 <i class="bi bi-journal-text stats-icon"></i>
             </div>
         </div>
-        
+
         <div class="card stats-card fade-in">
             <div class="card-body text-center">
                 <div class="stats-number">{{ total_documentacao }}</div>
@@ -30,7 +30,7 @@
                 <i class="bi bi-chat-left-text stats-icon"></i>
             </div>
         </div>
-        
+
         <div class="card stats-card fade-in">
             <div class="card-body text-center">
                 <div class="stats-number">{{ total_tarefas }}</div>
@@ -63,6 +63,10 @@
                     <i class="bi bi-list-check"></i>
                     Ver Todos os Planos
                 </a>
+                <a href="{% url 'conteudo_educacional_form' %}" class="btn btn-outline">
+                    <i class="bi bi-file-text"></i>
+                    Criar Conteúdo
+                </a>
             </div>
         </div>
     </div>
@@ -77,25 +81,25 @@
             </div>
             <div class="card-body">
                 {% if ultimos_planos %}
-                    <div class="recent-list">
-                        {% for plano in ultimos_planos %}
-                        <div class="recent-item">
-                            <div class="recent-item-content">
-                                <h5>{{ plano.titulo }}</h5>
-                                <p class="recent-item-meta">
-                                    {{ plano.paciente.nome_completo }} • 
-                                    {{ plano.data_criacao|date:"d/m/Y" }}
-                                </p>
-                            </div>
-                            <a href="{% url 'editar_plano' pk=plano.pk %}" class="btn btn-sm btn-outline">Ver</a>
+                <div class="recent-list">
+                    {% for plano in ultimos_planos %}
+                    <div class="recent-item">
+                        <div class="recent-item-content">
+                            <h5>{{ plano.titulo }}</h5>
+                            <p class="recent-item-meta">
+                                {{ plano.paciente.nome_completo }} •
+                                {{ plano.data_criacao|date:"d/m/Y" }}
+                            </p>
                         </div>
-                        {% endfor %}
+                        <a href="{% url 'editar_plano' pk=plano.pk %}" class="btn btn-sm btn-outline">Ver</a>
                     </div>
+                    {% endfor %}
+                </div>
                 {% else %}
-                    <div class="empty-state">
-                        <i class="bi bi-journal-x"></i>
-                        <p>Nenhum plano criado ainda.</p>
-                    </div>
+                <div class="empty-state">
+                    <i class="bi bi-journal-x"></i>
+                    <p>Nenhum plano criado ainda.</p>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -107,26 +111,26 @@
             </div>
             <div class="card-body">
                 {% if ultimas_documentacoes %}
-                    <div class="recent-list">
-                        {% for doc in ultimas_documentacoes %}
-                        <div class="recent-item">
-                            <div class="recent-item-content">
-                                <h5>{{ doc.paciente.nome_completo }}</h5>
-                                <p class="recent-item-meta">
-                                    {{ doc.data_sessao|date:"d/m/Y" }}
-                                </p>
-                                {% if doc.resumo_ia %}
-                                <p class="recent-item-desc">{{ doc.resumo_ia|truncatechars:80 }}</p>
-                                {% endif %}
-                            </div>
+                <div class="recent-list">
+                    {% for doc in ultimas_documentacoes %}
+                    <div class="recent-item">
+                        <div class="recent-item-content">
+                            <h5>{{ doc.paciente.nome_completo }}</h5>
+                            <p class="recent-item-meta">
+                                {{ doc.data_sessao|date:"d/m/Y" }}
+                            </p>
+                            {% if doc.resumo_ia %}
+                            <p class="recent-item-desc">{{ doc.resumo_ia|truncatechars:80 }}</p>
+                            {% endif %}
                         </div>
-                        {% endfor %}
                     </div>
+                    {% endfor %}
+                </div>
                 {% else %}
-                    <div class="empty-state">
-                        <i class="bi bi-chat-left"></i>
-                        <p>Nenhuma sessão documentada.</p>
-                    </div>
+                <div class="empty-state">
+                    <i class="bi bi-chat-left"></i>
+                    <p>Nenhuma sessão documentada.</p>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -138,23 +142,23 @@
             </div>
             <div class="card-body">
                 {% if ultimas_tarefas %}
-                    <div class="recent-list">
-                        {% for tarefa in ultimas_tarefas %}
-                        <div class="recent-item">
-                            <div class="recent-item-content">
-                                <h5>{{ tarefa.tema_principal }}</h5>
-                                <p class="recent-item-meta">
-                                    Abordagem: {{ tarefa.get_abordagem_teorica_display }}
-                                </p>
-                            </div>
+                <div class="recent-list">
+                    {% for tarefa in ultimas_tarefas %}
+                    <div class="recent-item">
+                        <div class="recent-item-content">
+                            <h5>{{ tarefa.tema_principal }}</h5>
+                            <p class="recent-item-meta">
+                                Abordagem: {{ tarefa.get_abordagem_teorica_display }}
+                            </p>
                         </div>
-                        {% endfor %}
                     </div>
+                    {% endfor %}
+                </div>
                 {% else %}
-                    <div class="empty-state">
-                        <i class="bi bi-card-checklist"></i>
-                        <p>Nenhum exercício criado ainda.</p>
-                    </div>
+                <div class="empty-state">
+                    <i class="bi bi-card-checklist"></i>
+                    <p>Nenhum exercício criado ainda.</p>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -162,157 +166,157 @@
 </div>
 
 <style>
-/* Dashboard específico - usando SUAS variáveis CSS */
-.dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-}
+    /* Dashboard específico - usando SUAS variáveis CSS */
+    .dashboard {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
+    }
 
-.welcome-card {
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    color: white;
-    text-align: center;
-}
+    .welcome-card {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        text-align: center;
+    }
 
-.welcome-card h1 {
-    color: white;
-    margin-bottom: var(--space-sm);
-}
+    .welcome-card h1 {
+        color: white;
+        margin-bottom: var(--space-sm);
+    }
 
-.welcome-card .text-muted {
-    color: rgba(255, 255, 255, 0.9) !important;
-}
+    .welcome-card .text-muted {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--space-md);
-}
-
-.stats-card {
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.stats-card:hover {
-    transform: translateY(-5px);
-}
-
-.stats-number {
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: var(--space-xs);
-    line-height: 1;
-}
-
-.stats-label {
-    color: var(--text-muted);
-    font-weight: 500;
-    margin-bottom: var(--space-sm);
-}
-
-.stats-icon {
-    font-size: 2.5rem;
-    color: var(--primary-light);
-    opacity: 0.8;
-}
-
-.quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-sm);
-}
-
-.dashboard-content-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: var(--space-md);
-}
-
-.recent-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-}
-
-.recent-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: var(--space-sm);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-light);
-    transition: all 0.3s ease;
-}
-
-.recent-item:hover {
-    background: var(--surface-hover);
-    border-color: var(--primary-light);
-}
-
-.recent-item-content {
-    flex: 1;
-}
-
-.recent-item h5 {
-    color: var(--primary);
-    margin-bottom: 5px;
-    font-size: 1rem;
-}
-
-.recent-item-meta {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    margin-bottom: 5px;
-}
-
-.recent-item-desc {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin: 0;
-}
-
-.empty-state {
-    text-align: center;
-    padding: var(--space-xl);
-    color: var(--text-muted);
-}
-
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: var(--space-sm);
-    opacity: 0.5;
-}
-
-.empty-state p {
-    margin: 0;
-    font-style: italic;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
     .stats-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--space-md);
     }
-    
-    .dashboard-content-grid {
-        grid-template-columns: 1fr;
+
+    .stats-card {
+        text-align: center;
+        transition: transform 0.3s ease;
     }
-    
-    .quick-actions-grid {
-        grid-template-columns: 1fr;
+
+    .stats-card:hover {
+        transform: translateY(-5px);
     }
-    
+
     .stats-number {
-        font-size: 2.5rem;
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: var(--space-xs);
+        line-height: 1;
     }
-    
-    .recent-item {
+
+    .stats-label {
+        color: var(--text-muted);
+        font-weight: 500;
+        margin-bottom: var(--space-sm);
+    }
+
+    .stats-icon {
+        font-size: 2.5rem;
+        color: var(--primary-light);
+        opacity: 0.8;
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--space-sm);
+    }
+
+    .dashboard-content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: var(--space-md);
+    }
+
+    .recent-list {
+        display: flex;
         flex-direction: column;
         gap: var(--space-sm);
     }
-}
+
+    .recent-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: var(--space-sm);
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+        transition: all 0.3s ease;
+    }
+
+    .recent-item:hover {
+        background: var(--surface-hover);
+        border-color: var(--primary-light);
+    }
+
+    .recent-item-content {
+        flex: 1;
+    }
+
+    .recent-item h5 {
+        color: var(--primary);
+        margin-bottom: 5px;
+        font-size: 1rem;
+    }
+
+    .recent-item-meta {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-bottom: 5px;
+    }
+
+    .recent-item-desc {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: var(--space-xl);
+        color: var(--text-muted);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: var(--space-sm);
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-style: italic;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-number {
+            font-size: 2.5rem;
+        }
+
+        .recent-item {
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+    }
 </style>
 {% endblock %}

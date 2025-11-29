@@ -20,6 +20,12 @@ urlpatterns = [
     path('tarefas/nova/', views.tarefas_form_view, name='tarefas_form'),
     path('tarefas/<int:pk>/', views.tarefas_detail_view, name='tarefas_detail'),
     
+    # Conteúdo Educacional
+    path('conteudos-educacionais/', views.listar_conteudos_educacionais_view, name='listar_conteudos_educacionais'),
+    path('conteudos-educacionais/novo/', views.conteudo_educacional_form_view, name='conteudo_educacional_form'),
+    path('conteudos-educacionais/ver/<int:pk>/', views.ver_conteudo_educacional_view, name='ver_conteudo_educacional'),
+    path('conteudos-educacionais/salvar/<int:pk>/', views.salvar_conteudo_educacional_view, name='salvar_conteudo_educacional'),
+    
     # API
     path('api/planos/', views.PlanoTratamentoViewSet.as_view({'get': 'list', 'post': 'create'}), name='api_planos'),
 ]

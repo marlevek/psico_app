@@ -2,19 +2,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from .models import PlanoTratamento, DocumentacaoSessao, TarefaExercicios, Paciente
-from .serializers import PlanoTratamentoSerializer, DocumentacaoSessaoSerializer, TarefaExerciciosSerializer
+from .models import PlanoTratamento, DocumentacaoSessao, TarefaExercicios, Paciente, ConteudoEducacional
+from .serializers import PlanoTratamentoSerializer, DocumentacaoSessaoSerializer, TarefaExerciciosSerializer, ConteudoEducacionalSerializer
 from django.db.models import Count
 from .ia_service import generate_task_exercise
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 import re  # Importação necessária para verificar se a string é um número
+
 
 # ------------------------------------------------------------------
 # FUNÇÃO AUXILIAR PARA PEGAR PACIENTES
 # ------------------------------------------------------------------
-
 
 def get_user_pacientes(user):
     """Retorna todos os pacientes associados ao usuário logado."""
@@ -352,3 +353,162 @@ def tarefas_detail_view(request, pk):
     tarefa = get_object_or_404(TarefaExercicios, pk=pk, usuario=request.user)
     context = {'tarefa': tarefa}
     return render(request, 'psico_saas/tarefas_detail.html', context)
+
+
+# ------------------------------------------------------------------
+# VIEWS PARA CONTEÚDO EDUCACIONAL
+# ------------------------------------------------------------------
+@login_required
+def conteudo_educacional_form_view(request):
+    """
+    View para criar novo conteúdo educacional com IA.
+    """
+    if request.method == 'POST':
+        data = request.POST.copy()
+        
+        serializer = ConteudoEducacionalSerializer(
+            data=data, 
+            context={'request': request}
+        )
+
+        if serializer.is_valid():
+            try:
+                conteudo_salvo = serializer.save(usuario=request.user)
+                
+                print("=== DEBUG VIEW ANTES DE RETORNAR JSON ===")
+                print("SUGESTÕES DE IMAGENS NO OBJETO SALVO:", repr(conteudo_salvo.sugestoes_imagens))  # Usar repr para ver caracteres especiais
+                print("=======================")
+                
+                # Se for requisição AJAX, retorne JSON
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    response_data = {
+                        'success': True,
+                        'id': conteudo_salvo.id,
+                        'conteudo_gerado': conteudo_salvo.conteudo_gerado or '',
+                        'sugestoes_titulos': conteudo_salvo.sugestoes_titulos or '',
+                        'hashtags': conteudo_salvo.hashtags or '',
+                        'sugestoes_imagens': conteudo_salvo.sugestoes_imagens or '',
+                    }
+                    print("=== DEBUG JSON RESPONSE ===")
+                    print("RESPONSE DATA:", response_data)
+                    print("SUGESTÕES DE IMAGENS NO RESPONSE:", repr(response_data['sugestoes_imagens']))
+                    print("=======================")
+                    
+                    return JsonResponse(response_data)
+                else:
+                    return redirect('listar_conteudos_educacionais')
+                
+            except Exception as e:
+                error_msg = f"Erro ao gerar conteúdo: {str(e)}"
+                print("ERRO NA VIEW:", error_msg)
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': error_msg})
+        else:
+            error_msg = f"Erro de validação: {serializer.errors}"
+            print("ERRO DE VALIDAÇÃO:", error_msg)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': error_msg})
+
+    context = {
+        'tipos_conteudo': ConteudoEducacional.TIPOS_CONTEUDO,
+    }
+    
+    return render(request, 'psico_saas/conteudo_educacional_form.html', context)
+
+@login_required
+def listar_conteudos_educacionais_view(request):
+    """
+    Lista todos os conteúdos educacionais do usuário.
+    """
+    conteudos = ConteudoEducacional.objects.filter(
+        usuario=request.user).order_by('-data_criacao')
+
+    context = {
+        'conteudos': conteudos
+    }
+
+    return render(request, 'psico_saas/conteudo_educacional_lista.html', context)
+
+
+@login_required
+def ver_conteudo_educacional_view(request, pk):
+    """
+    Exibe os detalhes de um conteúdo educacional.
+    """
+    conteudo = get_object_or_404(
+        ConteudoEducacional, pk=pk, usuario=request.user)
+
+    context = {
+        'conteudo': conteudo
+    }
+
+    return render(request, 'psico_saas/ver_conteudo_educacional.html', context)
+
+
+@login_required
+def salvar_conteudo_educacional_view(request, pk):
+    """
+    View para salvar/atualizar um conteúdo educacional existente.
+    """
+    if request.method == 'POST':
+        try:
+            print("=== 🚀 INICIANDO SALVAMENTO ===")
+            print("ID do conteúdo:", pk)
+            print("Usuário:", request.user)
+            print("Dados POST recebidos:", dict(request.POST))
+            
+            conteudo = get_object_or_404(ConteudoEducacional, pk=pk, usuario=request.user)
+            
+            # Log dos valores atuais
+            print("Valores atuais no BD:")
+            print(f"  Título: {conteudo.titulo}")
+            print(f"  Conteúdo: {len(conteudo.conteudo_gerado or '')} chars")
+            print(f"  Imagens: {len(conteudo.sugestoes_imagens or '')} chars")
+            
+            # Atualizar os campos
+            novo_titulo = request.POST.get('titulo')
+            novo_conteudo = request.POST.get('conteudo_gerado')
+            novas_imagens = request.POST.get('sugestoes_imagens')
+            
+            print("Novos valores recebidos:")
+            print(f"  Título: {novo_titulo}")
+            print(f"  Conteúdo: {len(novo_conteudo or '')} chars")
+            print(f"  Imagens: {len(novas_imagens or '')} chars")
+            
+            if novo_titulo:
+                conteudo.titulo = novo_titulo
+            if novo_conteudo:
+                conteudo.conteudo_gerado = novo_conteudo
+            if request.POST.get('sugestoes_titulos'):
+                conteudo.sugestoes_titulos = request.POST.get('sugestoes_titulos')
+            if request.POST.get('hashtags'):
+                conteudo.hashtags = request.POST.get('hashtags')
+            if novas_imagens is not None:  # Permite string vazia
+                conteudo.sugestoes_imagens = novas_imagens
+            
+            # SALVAR EFETIVAMENTE
+            conteudo.save()
+            
+            # Verificar se salvou
+            conteudo.refresh_from_db()
+            print("Valores após salvamento:")
+            print(f"  Título: {conteudo.titulo}")
+            print(f"  Conteúdo: {len(conteudo.conteudo_gerado or '')} chars")
+            print(f"  Imagens: {len(conteudo.sugestoes_imagens or '')} chars")
+            print("=== ✅ SALVAMENTO CONCLUÍDO ===")
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': 'Conteúdo salvo com sucesso!'})
+            else:
+                return redirect('listar_conteudos_educacionais')
+                
+        except Exception as e:
+            print(f"=== ❌ ERRO NO SALVAMENTO: {str(e)} ===")
+            import traceback
+            traceback.print_exc()
+            
+            error_msg = f"Erro ao salvar conteúdo: {str(e)}"
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': error_msg})
+    
+    return JsonResponse({'success': False, 'error': 'Método não permitido'})

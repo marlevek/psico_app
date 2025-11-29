@@ -1,0 +1,542 @@
+{% extends 'psico_saas/base.html' %}
+{% load static %}
+
+{% block title %}Criar Conteúdo Educacional - Psico Assist{% endblock %}
+
+{% block extra_css %}
+<!-- Biblioteca para gerar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📝 Criar Conteúdo Educacional</h2>
+            <p class="text-muted">Crie conteúdos para redes sociais, blog, consultório ou materiais para pacientes</p>
+        </div>
+        <div class="card-body">
+            
+            <div id="error-message" class="alert alert-error" style="display: none;"></div>
+            <div id="success-message" class="alert alert-success" style="display: none;"></div>
+            
+            <form id="conteudoForm" class="conteudo-educacional-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="titulo" class="form-label required">Título do Conteúdo</label>
+                    <input type="text" id="titulo" name="titulo" class="form-control" 
+                           placeholder="Ex: Como lidar com a ansiedade no dia a dia"
+                           required>
+                    <div class="invalid-feedback">Por favor, informe um título para o conteúdo.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo_conteudo" class="form-label required">Tipo de Conteúdo</label>
+                    <select id="tipo_conteudo" name="tipo_conteudo" class="form-control form-select" required>
+                        <option value="">Selecione o tipo de conteúdo...</option>
+                        {% for tipo_valor, tipo_nome in tipos_conteudo %}
+                            <option value="{{ tipo_valor }}">{{ tipo_nome }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback">Por favor, selecione o tipo de conteúdo.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tema_principal" class="form-label required">Tema Principal</label>
+                    <input type="text" id="tema_principal" name="tema_principal" class="form-control" 
+                           placeholder="Ex: Ansiedade, Autocuidado, Saúde Mental no Trabalho"
+                           required>
+                    <div class="help-text">Descreva o tema central que você quer abordar.</div>
+                    <div class="invalid-feedback">Por favor, informe o tema principal.</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="publico_alvo" class="form-label">Público-Alvo</label>
+                        <input type="text" id="publico_alvo" name="publico_alvo" class="form-control" 
+                               value="Público geral" 
+                               placeholder="Ex: Adolescentes, Adultos, Pais">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tom_voz" class="form-label">Tom de Voz</label>
+                        <select id="tom_voz" name="tom_voz" class="form-control form-select">
+                            <option value="Profissional e acolhedor">Profissional e Acolhedor</option>
+                            <option value="Descontraído e próximo">Descontraído e Próximo</option>
+                            <option value="Técnico e informativo">Técnico e Informativo</option>
+                            <option value="Inspirador e motivacional">Inspirador e Motivacional</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="palavras_chave" class="form-label">Palavras-Chave</label>
+                    <textarea id="palavras_chave" name="palavras_chave" class="form-control" rows="2"
+                              placeholder="Ex: saúde mental, autocuidado, terapia, bem-estar"></textarea>
+                    <div class="help-text">Separe por vírgulas. Ajuda a IA a focar no conteúdo relevante.</div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="bi bi-stars"></i>
+                        <span id="submitText">Gerar Conteúdo com IA</span>
+                        <div id="loadingSpinner" class="spinner-border spinner-border-sm" role="status" style="display: none;">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancelar</a>
+                </div>
+            </form>
+
+            <div id="resultContainer" style="display: none;">
+                <div class="feedback-ia mt-4">
+                    <h4>📄 Conteúdo Gerado pela IA</h4>
+                    <p class="text-muted" id="instrucoesUso">Copie e cole diretamente nas suas redes sociais!</p>
+                    
+                    <div class="form-section">
+                        <h5 class="section-title">📝 Conteúdo Principal</h5>
+                        <div class="result-content" id="conteudoPrincipal"></div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5 class="section-title">🏷️ Sugestões de Títulos</h5>
+                        <div class="result-content" id="sugestoesTitulos"></div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5 class="section-title">#️⃣ Hashtags Sugeridas</h5>
+                        <div class="result-content" id="hashtagsSugeridas"></div>
+                    </div>
+
+                    <div class="form-section" id="sugestoesImagensSection" style="display: none;">
+                        <h5 class="section-title">🖼️ Sugestões de Imagens</h5>
+                        <div class="result-content" id="sugestoesImagens"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <!-- Botão para Redes Sociais e Blog (Cópia) -->
+                        <button class="btn btn-primary" onclick="copiarConteudoPrincipal()" id="btnCopiar" style="display: none;">
+                            <i class="bi bi-clipboard"></i>
+                            Copiar Conteúdo
+                        </button>
+                        
+                        <!-- Botão para Consultório e Material Paciente (PDF) -->
+                        <button class="btn btn-success" onclick="gerarPDF()" id="btnPDF" style="display: none;">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                            Salvar como PDF
+                        </button>
+                        
+                        <!-- Botão para copiar tudo -->
+                        <button class="btn btn-outline" onclick="copiarTudo()" id="btnCopiarTudo" style="display: none;">
+                            <i class="bi bi-clipboard-check"></i>
+                            Copiar Tudo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.conteudo-educacional-form .form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.form-row {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.result-content {
+    background: var(--background-alt);
+    padding: var(--space-md);
+    border-radius: var(--radius);
+    border-left: 4px solid var(--primary);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    font-family: inherit;
+}
+
+.feedback-ia {
+    border-top: 2px solid var(--border-light);
+    padding-top: var(--space-lg);
+    margin-top: var(--space-lg);
+}
+
+/* Validação */
+.form-control:invalid {
+    border-color: var(--error);
+}
+
+.form-label.required::after {
+    content: " *";
+    color: var(--error);
+}
+
+.spinner-border {
+    margin-left: 8px;
+}
+
+/* Estilo para sugestões de imagens */
+#sugestoesImagensSection {
+    border-left: 4px solid var(--secondary);
+    background: var(--background-alt);
+}
+
+#sugestoesImagensSection .section-title {
+    color: var(--secondary);
+}
+</style>
+
+<script>
+let conteudoAtual = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('conteudoForm');
+    
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        gerarConteudo();
+    });
+
+    // Remover mensagens de erro quando o usuário começar a digitar
+    const fields = form.querySelectorAll('input, select, textarea');
+    fields.forEach(field => {
+        field.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+            hideMessage('error-message');
+        });
+    });
+});
+
+function gerarConteudo() {
+    const form = document.getElementById('conteudoForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    
+    // Validação básica
+    let isValid = true;
+    const requiredFields = form.querySelectorAll('[required]');
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            isValid = false;
+            field.classList.add('is-invalid');
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        showMessage('error-message', 'Por favor, preencha todos os campos obrigatórios.');
+        return;
+    }
+
+    // Mostrar loading
+    submitBtn.disabled = true;
+    submitText.textContent = 'Gerando...';
+    loadingSpinner.style.display = 'inline-block';
+    hideMessage('error-message');
+
+    // Fazer requisição AJAX
+    const formData = new FormData(form);
+    
+    fetch('{% url "conteudo_educacional_form" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            conteudoAtual = data;
+            mostrarResultado(data);
+        } else {
+            showMessage('error-message', data.error || 'Erro ao gerar conteúdo.');
+        }
+    })
+    .catch(error => {
+        showMessage('error-message', 'Erro de conexão: ' + error.message);
+    })
+    .finally(() => {
+        // Restaurar botão
+        if (submitBtn && submitText && loadingSpinner) {
+            submitBtn.disabled = false;
+            submitText.textContent = 'Gerar Conteúdo com IA';
+            loadingSpinner.style.display = 'none';
+        }
+    });
+}
+
+function mostrarResultado(data) {
+    // Elementos básicos
+    const resultContainer = document.getElementById('resultContainer');
+    const conteudoPrincipal = document.getElementById('conteudoPrincipal');
+    const sugestoesTitulos = document.getElementById('sugestoesTitulos');
+    const hashtagsSugeridas = document.getElementById('hashtagsSugeridas');
+    const sugestoesImagens = document.getElementById('sugestoesImagens');
+    const sugestoesImagensSection = document.getElementById('sugestoesImagensSection');
+    const instrucoesUso = document.getElementById('instrucoesUso');
+    
+    // 1. Exibir conteúdo principal
+    if (conteudoPrincipal) {
+        conteudoPrincipal.innerHTML = formatarTextoParaHTML(data.conteudo_gerado);
+    }
+    
+    // 2. Exibir sugestões de títulos
+    if (sugestoesTitulos) {
+        sugestoesTitulos.innerHTML = formatarTextoParaHTML(data.sugestoes_titulos);
+    }
+    
+    // 3. Exibir hashtags
+    if (hashtagsSugeridas) {
+        hashtagsSugeridas.textContent = data.hashtags || 'Nenhuma hashtag sugerida.';
+    }
+    
+    // 4. EXIBIR SUGESTÕES DE IMAGENS
+    if (sugestoesImagens && sugestoesImagensSection) {
+        if (data.sugestoes_imagens && data.sugestoes_imagens.trim().length > 0) {
+            sugestoesImagens.innerHTML = formatarTextoParaHTML(data.sugestoes_imagens);
+            sugestoesImagensSection.style.display = 'block';
+        } else {
+            sugestoesImagensSection.style.display = 'none';
+        }
+    }
+    
+    // 5. CONFIGURAR BOTÕES CONFORME O TIPO
+    const tipoSelecionado = document.getElementById('tipo_conteudo').value;
+    configurarBotoesPorTipo(tipoSelecionado);
+    
+    // 6. Atualizar instruções de uso
+    if (instrucoesUso) {
+        switch(tipoSelecionado) {
+            case 'POST_REDES_SOCIAIS':
+                instrucoesUso.textContent = 'Copie e cole diretamente nas suas redes sociais!';
+                break;
+            case 'ARTIGO_BLOG':
+                instrucoesUso.textContent = 'Copie e cole no seu blog ou site!';
+                break;
+            case 'TEXTO_CONSULTORIO':
+                instrucoesUso.textContent = 'Salve como PDF para usar no consultório!';
+                break;
+            case 'MATERIAL_PACIENTE':
+                instrucoesUso.textContent = 'Salve como PDF para entregar aos pacientes!';
+                break;
+        }
+    }
+    
+    // 7. Mostrar container de resultados
+    if (resultContainer) {
+        resultContainer.style.display = 'block';
+        
+        // Rolagem suave
+        resultContainer.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
+    
+    showMessage('success-message', 'Conteúdo gerado com sucesso! Use os botões abaixo para copiar ou salvar.');
+}
+
+function configurarBotoesPorTipo(tipoConteudo) {
+    const btnCopiar = document.getElementById('btnCopiar');
+    const btnPDF = document.getElementById('btnPDF');
+    const btnCopiarTudo = document.getElementById('btnCopiarTudo');
+    
+    // Esconder todos primeiro
+    if (btnCopiar) btnCopiar.style.display = 'none';
+    if (btnPDF) btnPDF.style.display = 'none';
+    if (btnCopiarTudo) btnCopiarTudo.style.display = 'none';
+    
+    // Mostrar conforme o tipo
+    switch(tipoConteudo) {
+        case 'POST_REDES_SOCIAIS':
+        case 'ARTIGO_BLOG':
+            // Apenas cópia para redes sociais e blog
+            if (btnCopiar) btnCopiar.style.display = 'inline-block';
+            if (btnCopiarTudo) btnCopiarTudo.style.display = 'inline-block';
+            break;
+            
+        case 'TEXTO_CONSULTORIO':
+        case 'MATERIAL_PACIENTE':
+            // Apenas PDF para consultório e material paciente
+            if (btnPDF) btnPDF.style.display = 'inline-block';
+            if (btnCopiarTudo) btnCopiarTudo.style.display = 'inline-block';
+            break;
+    }
+}
+
+function formatarTextoParaHTML(texto) {
+    if (!texto || texto.trim().length === 0) {
+        return '<em>Nenhum conteúdo gerado.</em>';
+    }
+    return String(texto).replace(/\n/g, '<br>');
+}
+
+function copiarConteudoPrincipal() {
+    const conteudoPrincipal = document.getElementById('conteudoPrincipal');
+    if (!conteudoPrincipal) {
+        showMessage('error-message', 'Erro: Conteúdo não encontrado para copiar.');
+        return;
+    }
+    
+    const conteudo = conteudoPrincipal.innerText;
+    navigator.clipboard.writeText(conteudo).then(function() {
+        const tipo = document.getElementById('tipo_conteudo').value;
+        let mensagem = '✅ Conteúdo copiado para a área de transferência!';
+        
+        if (tipo === 'POST_REDES_SOCIAIS') {
+            mensagem += ' Agora é só colar nas redes sociais.';
+        } else if (tipo === 'ARTIGO_BLOG') {
+            mensagem += ' Agora é só colar no seu blog.';
+        }
+        
+        showMessage('success-message', mensagem);
+    }).catch(function(err) {
+        showMessage('error-message', 'Erro ao copiar conteúdo: ' + err);
+    });
+}
+
+function copiarTudo() {
+    let conteudoCompleto = '';
+    
+    // Conteúdo principal
+    const conteudoPrincipal = document.getElementById('conteudoPrincipal');
+    if (conteudoPrincipal) {
+        conteudoCompleto += conteudoPrincipal.innerText + '\n\n';
+    }
+    
+    // Hashtags (apenas para redes sociais)
+    const tipo = document.getElementById('tipo_conteudo').value;
+    if (tipo === 'POST_REDES_SOCIAIS') {
+        const hashtagsSugeridas = document.getElementById('hashtagsSugeridas');
+        if (hashtagsSugeridas && hashtagsSugeridas.innerText !== 'Nenhuma hashtag sugerida.') {
+            conteudoCompleto += hashtagsSugeridas.innerText + '\n\n';
+        }
+    }
+    
+    // Sugestões de imagens
+    const sugestoesImagens = document.getElementById('sugestoesImagens');
+    if (sugestoesImagens && sugestoesImagens.style.display !== 'none') {
+        conteudoCompleto += '🖼️ Sugestões de Imagens:\n' + sugestoesImagens.innerText;
+    }
+    
+    navigator.clipboard.writeText(conteudoCompleto).then(function() {
+        showMessage('success-message', '✅ Todo o conteúdo copiado para a área de transferência!');
+    }).catch(function(err) {
+        showMessage('error-message', 'Erro ao copiar conteúdo: ' + err);
+    });
+}
+
+function gerarPDF() {
+    // Coletar todos os dados para o PDF
+    const titulo = document.getElementById('titulo').value;
+    const tipoConteudo = document.getElementById('tipo_conteudo').value;
+    const conteudoPrincipal = document.getElementById('conteudoPrincipal').innerText;
+    const sugestoesTitulos = document.getElementById('sugestoesTitulos').innerText;
+    const sugestoesImagens = document.getElementById('sugestoesImagens').innerText;
+    
+    // Criar conteúdo formatado para PDF
+    let conteudoPDF = `
+        PSICO ASSIST - CONTEÚDO EDUCACIONAL
+        ===================================
+        
+        TÍTULO: ${titulo}
+        TIPO: ${tipoConteudo}
+        DATA: ${new Date().toLocaleDateString('pt-BR')}
+        
+        ===================================
+        
+        CONTEÚDO PRINCIPAL:
+        ${conteudoPrincipal}
+        
+        ===================================
+        
+        SUGESTÕES DE TÍTULOS:
+        ${sugestoesTitulos}
+        `;
+    
+    // Adicionar sugestões de imagens se existirem
+    if (sugestoesImagens && sugestoesImagens.trim()) {
+        conteudoPDF += `
+        
+        SUGESTÕES DE IMAGENS:
+        ${sugestoesImagens}
+        `;
+    }
+    
+    // Rodapé profissional
+    conteudoPDF += `
+        
+        ===================================
+        Gerado por Psico Assist
+        ${window.location.origin}
+        ===================================
+    `;
+    
+    // Usar a biblioteca html2pdf.js
+    const element = document.createElement('div');
+    element.style.whiteSpace = 'pre-wrap';
+    element.style.fontFamily = 'Arial, sans-serif';
+    element.style.padding = '20px';
+    element.style.fontSize = '12px';
+    element.style.lineHeight = '1.4';
+    element.textContent = conteudoPDF;
+    
+    // Configurações do PDF
+    const opt = {
+        margin: 1,
+        filename: `conteudo_educacional_${titulo.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // Gerar PDF
+    html2pdf().set(opt).from(element).save().then(() => {
+        showMessage('success-message', '✅ PDF gerado e salvo com sucesso!');
+    }).catch(error => {
+        showMessage('error-message', 'Erro ao gerar PDF: ' + error.message);
+    });
+}
+
+function showMessage(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = message;
+        element.style.display = 'block';
+        
+        // Auto-esconder após 5 segundos
+        setTimeout(() => {
+            if (element) {
+                element.style.display = 'none';
+            }
+        }, 5000);
+    }
+}
+
+function hideMessage(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
