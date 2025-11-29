@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from datetime import date
+from django.utils import timezone
+
 
 User = get_user_model()
 
@@ -45,7 +47,7 @@ class PlanoTratamento(models.Model):
         # Removendo blank=True, null=True, pois o Paciente deve ser obrigatório agora.
         # Se você ainda precisa disso por conta de migração, mantenha.
     )
-    data_inicio_prevista = models.DateField(verbose_name='Data de Início Prevista')
+    data_inicio_prevista = models.DateField(verbose_name='Data de Início Prevista', default=timezone.now)
     titulo = models.CharField(max_length=255)
     data_criacao = models.DateTimeField(auto_now_add=True)
     

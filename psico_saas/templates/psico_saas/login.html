@@ -1,0 +1,28 @@
+{% extends 'psico_saas/base.html' %}
+
+{% block title %}Login - Psico SaaS{% endblock %}
+
+{% block content %}
+<div class="login-container" style="max-width: 400px; margin: 100px auto; padding: var(--space-xl);">
+    <div class="card">
+        <div class="card-header text-center">
+            <h2>🌿 Psico Assist</h2>
+            <p class="text-muted">Faça login em sua conta</p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username" class="form-label">Usuário</label>
+                    <input type="text" id="username" name="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">Senha</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mt-3">Entrar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

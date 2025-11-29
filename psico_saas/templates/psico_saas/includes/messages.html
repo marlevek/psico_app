@@ -1,0 +1,62 @@
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} fade-in">
+        <div class="alert-content">
+            {% if message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill"></i>
+            {% elif message.tags == 'error' %}
+                <i class="bi bi-exclamation-circle-fill"></i>
+            {% elif message.tags == 'warning' %}
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            {% else %}
+                <i class="bi bi-info-circle-fill"></i>
+            {% endif %}
+            <span>{{ message }}</span>
+        </div>
+        <button class="alert-close" onclick="this.parentElement.style.display='none'">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<style>
+.messages-container {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-sm);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.alert-close:hover {
+    background: rgba(0,0,0,0.1);
+}
+</style>

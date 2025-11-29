@@ -1,15 +1,15 @@
 from django.contrib import admin
 from django.urls import path, include
-
+from django.contrib.auth import views as auth_views
+from django.views.generic import RedirectView
 
 urlpatterns = [
-    # 1. URL do Admin
     path('admin/', admin.site.urls),
     
-    # ⬅️ ESSA LINHA É CRÍTICA! Ela inclui o login/logout padrão do Django.
-    path('accounts/', include('django.contrib.auth.urls')),
-    
-    # Inclui todas as urls do nosso app sob o prefixo 'api/'
+    # Incluir as URLs do app psico_saas
     path('', include('psico_saas.urls')),
+    
+    # URLs de autenticação
+    path('login/', auth_views.LoginView.as_view(template_name='psico_saas/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
-

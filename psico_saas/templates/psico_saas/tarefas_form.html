@@ -1,78 +1,178 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gerador de Exercícios - Psico SaaS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-5">
-        <div class="card shadow-lg">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <h1 class="h4 mb-0">Gerador de Exercícios e Tarefas (IA)</h1>
-                <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light">Voltar ao Dashboard</a>
-            </div>
-            <div class="card-body">
+{% extends 'psico_saas/base.html' %}
+{% load static %}
+
+{% block title %}Criar Novo Exercício - Psico Assist{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Criar Novo Exercício com IA</h2>
+            <a href="{% url 'listar_tarefas' %}" class="btn btn-outline">Voltar</a>
+        </div>
+        <div class="card-body">
+            
+            {% if error_message %}
+                <div class="alert alert-error">{{ error_message }}</div>
+            {% endif %}
+            
+            <form method="post" class="tarefas-form">
+                {% csrf_token %}
                 
-                {% if error_message %}
-                    <div class="alert alert-danger">{{ error_message|linebreaksbr }}</div>
-                {% endif %}
-                
-                <form method="post" novalidate>
-                    {% csrf_token %}
-<div class="mb-3">
-    <label for="paciente" class="form-label">Paciente:</label>
-    <select id="paciente" name="paciente" class="form-select" required>
-        <option value="">Selecione o paciente...</option>
-        {% for paciente in pacientes %}
-            <option value="{{ paciente.pk }}" 
-                {% if request.POST.paciente|slugify == paciente.pk|slugify %}selected{% endif %}>
-                {{ paciente.nome_completo }}
-            </option>
-        {% endfor %}
-    </select>
-</div>
-                    <div class="mb-3">
-                        <label for="abordagem_teorica" class="form-label">Abordagem Teórica:</label>
-                        <select id="abordagem_teorica" name="abordagem_teorica" class="form-select" required>
-                            <option value="">Selecione a abordagem...</option>
-                            {% for key, value in abordagens %}
-                                <option value="{{ key }}" {% if request.POST.abordagem_teorica == key %}selected{% endif %}>{{ value }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="paciente" class="form-label required">Paciente</label>
+                    <select id="paciente" name="paciente" class="form-control form-select" required>
+                        <option value="">Selecione o paciente...</option>
+                        {% for paciente in pacientes %}
+                            <option value="{{ paciente.pk }}" 
+                                {% if request.POST.paciente|slugify == paciente.pk|slugify %}selected{% endif %}>
+                                {{ paciente.nome_completo }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback">Por favor, selecione um paciente.</div>
+                </div>
 
-                    <div class="mb-3">
-                        <label for="tema_principal" class="form-label">Tema Principal da Sessão/Tarefa:</label>
-                        <input type="text" id="tema_principal" name="tema_principal" class="form-control" value="{{ request.POST.tema_principal|default:'' }}" required>
-                        <div class="form-text">Ex: "Procrastinação", "Ansiedade Social", "Reestruturação Cognitiva".</div>
-                    </div>
+                <div class="form-group">
+                    <label for="abordagem_teorica" class="form-label required">Abordagem Terapêutica</label>
+                    <select id="abordagem_teorica" name="abordagem_teorica" class="form-control form-select" required>
+                        <option value="">Selecione a abordagem...</option>
+                        <option value="TCC" {% if request.POST.abordagem_teorica == "TCC" %}selected{% endif %}>Terapia Cognitivo-Comportamental (TCC)</option>
+                        <option value="ACT" {% if request.POST.abordagem_teorica == "ACT" %}selected{% endif %}>Terapia de Aceitação e Compromisso (ACT)</option>
+                        <option value="DBT" {% if request.POST.abordagem_teorica == "DBT" %}selected{% endif %}>Terapia Comportamental Dialética (DBT)</option>
+                        <option value="PSICANALISE" {% if request.POST.abordagem_teorica == "PSICANALISE" %}selected{% endif %}>Psicanálise</option>
+                        <option value="HUMANISTA" {% if request.POST.abordagem_teorica == "HUMANISTA" %}selected{% endif %}>Abordagem Humanista</option>
+                        <option value="OUTRA" {% if request.POST.abordagem_teorica == "OUTRA" %}selected{% endif %}>Outra</option>
+                    </select>
+                    <div class="invalid-feedback">Por favor, selecione uma abordagem terapêutica.</div>
+                </div>
 
-                    <div class="mb-3">
-                        <label for="detalhes_personalizacao" class="form-label">Detalhes para Personalização (Opcional):</label>
-                        <textarea id="detalhes_personalizacao" name="detalhes_personalizacao" class="form-control" rows="3">{{ request.POST.detalhes_personalizacao|default:'' }}</textarea>
-                        <div class="form-text">Informações sobre o paciente para refinar o exercício (idade, interesses, nível de resistência, etc.).</div>
-                    </div>
+                <div class="form-group">
+                    <label for="tema_principal" class="form-label required">Tema Principal do Exercício</label>
+                    <input type="text" id="tema_principal" name="tema_principal" class="form-control" 
+                           value="{{ request.POST.tema_principal|default:'' }}" 
+                           placeholder="Ex: Ansiedade social, Autocompaixão, Regulação emocional..." required>
+                    <div class="help-text">Descreva brevemente o tema ou objetivo principal do exercício.</div>
+                    <div class="invalid-feedback">Por favor, informe o tema principal do exercício.</div>
+                </div>
 
-                    <button type="submit" class="btn btn-success btn-lg w-100">Gerar Exercício com IA</button>
-                </form>
+                <div class="form-group">
+                    <label for="contexto" class="form-label required">Contexto e Necessidades Específicas</label>
+                    <textarea id="contexto" name="contexto" class="form-control" rows="6" 
+                              placeholder="Descreva o contexto clínico, necessidades específicas do paciente, desafios atuais, objetivos terapêuticos..."
+                              required>{{ request.POST.contexto|default:'' }}</textarea>
+                    <div class="help-text">Forneça informações contextuais para que a IA possa criar um exercício personalizado.</div>
+                    <div class="invalid-feedback">Por favor, descreva o contexto e necessidades específicas.</div>
+                </div>
 
-                {% if exercicio_ia %}
-                    <div class="mt-4 border-top pt-3">
-                        <h2 class="h5 text-primary">Exercício Gerado Pela IA</h2>
-                        
-                        <div class="p-3 border rounded bg-light">
-                            <p class="small mb-0">{{ exercicio_ia|linebreaksbr }}</p>
-                        </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-lightbulb"></i>
+                        Gerar Exercício com IA
+                    </button>
+                    <a href="{% url 'listar_tarefas' %}" class="btn btn-outline">Cancelar</a>
+                </div>
+            </form>
+
+            {% if exercicio_gerado %}
+                <div class="feedback-ia mt-4">
+                    <h4>Exercício Gerado pela IA</h4>
+                    
+                    <div class="form-section">
+                        <h5 class="section-title">Título do Exercício</h5>
+                        <p>{{ exercicio_gerado.titulo|default:"Título do exercício" }}</p>
                     </div>
-                {% endif %}
-            </div>
-            <div class="card-footer text-end text-muted small">
-                Logado como: {{ request.user.username }} | <a href="{% url 'logout' %}" class="text-danger">Sair</a>
-            </div>
+                    
+                    <div class="form-section">
+                        <h5 class="section-title">Instruções</h5>
+                        <p>{{ exercicio_gerado.instrucoes|default:"Instruções do exercício"|linebreaks }}</p>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5 class="section-title">Materiais Necessários</h5>
+                        <p>{{ exercicio_gerado.materiais|default:"Materiais necessários"|linebreaks }}</p>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-primary">Salvar Exercício</button>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+
+<style>
+/* Estilos específicos para validação */
+.form-control:invalid {
+    border-color: var(--error);
+    background-color: #fef2f2;
+}
+
+.form-control:invalid:focus {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.form-label.required::after {
+    content: " *";
+    color: var(--error);
+}
+
+/* Melhorar a aparência dos placeholders */
+.form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+/* Estilo para o formulário de tarefas */
+.tarefas-form .form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.tarefas-form textarea.form-control {
+    min-height: 150px;
+    resize: vertical;
+}
+</style>
+
+<script>
+// Validação client-side básica
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.tarefas-form');
+    
+    form.addEventListener('submit', function(event) {
+        let isValid = true;
+        const requiredFields = form.querySelectorAll('[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            event.preventDefault();
+            // Rolar até o primeiro campo inválido
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+    
+    // Remover estado inválido quando o usuário começar a digitar
+    const fields = form.querySelectorAll('input, select, textarea');
+    fields.forEach(field => {
+        field.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

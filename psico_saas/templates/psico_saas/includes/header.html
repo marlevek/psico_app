@@ -1,0 +1,50 @@
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <!-- Logo -->
+            <div class="logo">
+                <span class="logo-icon">🌿</span>
+                <span>Psico Assist</span>
+            </div>
+
+            <!-- Navegação -->
+            <nav class="nav">
+                <a href="{% url 'dashboard' %}" class="nav-link">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </a>
+                <a href="{% url 'listar_planos' %}" class="nav-link">
+                    <i class="bi bi-journal-text"></i>
+                    Planos
+                </a>
+                <a href="{% url 'documentacao_form' %}" class="nav-link">
+                    <i class="bi bi-chat-left-text"></i>
+                    Sessões
+                </a>
+                <a href="{% url 'listar_tarefas' %}" class="nav-link">
+                    <i class="bi bi-card-checklist"></i>
+                    Exercícios
+                </a>
+                
+                <!-- Menu Usuário -->
+                <div class="dropdown">
+                    <button class="btn btn-outline" style="color: white; border-color: white;">
+                        <i class="bi bi-person-circle"></i>
+                        {{ request.user.username }}
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">
+                            <i class="bi bi-gear"></i>
+                            Configurações
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Sair
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+</header>

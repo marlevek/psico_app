@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Estilos - Psico SaaS</title>
+    <style>
+        /* ESTILO BASE */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .style-preview {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .style-preview:hover {
+            transform: translateY(-5px);
+        }
+        
+        .preview-header {
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+        
+        .preview-content {
+            padding: 20px;
+            background: var(--surface);
+            min-height: 200px;
+        }
+        
+        .card {
+            background: var(--surface);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 5px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        /* ESTILO 1: CLEAN & PROFISSIONAL */
+        .style-1 {
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --accent: #0ea5e9;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --success: #10b981;
+        }
+        
+        .style-1 .preview-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+        }
+        
+        .style-1 .preview-content {
+            background: var(--background);
+        }
+        
+        /* ESTILO 2: ACGEDOR & TERAPÊUTICO */
+        .style-2 {
+            --primary: #059669;
+            --secondary: #d97706;
+            --accent: #65a30d;
+            --background: #fef7ed;
+            --surface: #ffffff;
+            --text: #422006;
+            --success: #dc2626;
+        }
+        
+        .style-2 .preview-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+        }
+        
+        .style-2 .preview-content {
+            background: var(--background);
+        }
+        
+        /* ESTILO 3: MODERNO & MINIMALISTA */
+        .style-3 {
+            --primary: #7c3aed;
+            --secondary: #475569;
+            --accent: #a855f7;
+            --background: #f1f5f9;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --success: #8b5cf6;
+        }
+        
+        .style-3 .preview-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+        }
+        
+        .style-3 .preview-content {
+            background: var(--background);
+        }
+        
+        /* ESTILO 4: COLORIDO & ENERGÉTICO */
+        .style-4 {
+            --primary: #ec4899;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --background: #f0f9ff;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --success: #10b981;
+        }
+        
+        .style-4 .preview-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+        }
+        
+        .style-4 .preview-content {
+            background: var(--background);
+        }
+        
+        h3 {
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+        
+        .card h4 {
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        
+        .card p {
+            color: var(--text);
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ESTILO 1: CLEAN & PROFISSIONAL -->
+        <div class="style-preview style-1">
+            <div class="preview-header">
+                <h2>🏥 Clean & Profissional</h2>
+            </div>
+            <div class="preview-content">
+                <h3>Dashboard</h3>
+                <div class="card">
+                    <h4>Pacientes Ativos</h4>
+                    <p>12 pacientes em acompanhamento</p>
+                </div>
+                <div class="card">
+                    <h4>Próxima Sessão</h4>
+                    <p>Joana Silva - 15:00 hoje</p>
+                </div>
+                <button class="btn btn-primary">Novo Plano</button>
+                <button class="btn btn-secondary">Ver Relatórios</button>
+            </div>
+        </div>
+        
+        <!-- ESTILO 2: ACGEDOR & TERAPÊUTICO -->
+        <div class="style-preview style-2">
+            <div class="preview-header">
+                <h2>🌿 Acolhedor & Terapêutico</h2>
+            </div>
+            <div class="preview-content">
+                <h3>Dashboard</h3>
+                <div class="card">
+                    <h4>Pacientes Ativos</h4>
+                    <p>12 pacientes em acompanhamento</p>
+                </div>
+                <div class="card">
+                    <h4>Próxima Sessão</h4>
+                    <p>Joana Silva - 15:00 hoje</p>
+                </div>
+                <button class="btn btn-primary">Novo Plano</button>
+                <button class="btn btn-secondary">Ver Relatórios</button>
+            </div>
+        </div>
+        
+        <!-- ESTILO 3: MODERNO & MINIMALISTA -->
+        <div class="style-preview style-3">
+            <div class="preview-header">
+                <h2>🎨 Moderno & Minimalista</h2>
+            </div>
+            <div class="preview-content">
+                <h3>Dashboard</h3>
+                <div class="card">
+                    <h4>Pacientes Ativos</h4>
+                    <p>12 pacientes em acompanhamento</p>
+                </div>
+                <div class="card">
+                    <h4>Próxima Sessão</h4>
+                    <p>Joana Silva - 15:00 hoje</p>
+                </div>
+                <button class="btn btn-primary">Novo Plano</button>
+                <button class="btn btn-secondary">Ver Relatórios</button>
+            </div>
+        </div>
+        
+        <!-- ESTILO 4: COLORIDO & ENERGÉTICO -->
+        <div class="style-preview style-4">
+            <div class="preview-header">
+                <h2>✨ Colorido & Energético</h2>
+            </div>
+            <div class="preview-content">
+                <h3>Dashboard</h3>
+                <div class="card">
+                    <h4>Pacientes Ativos</h4>
+                    <p>12 pacientes em acompanhamento</p>
+                </div>
+                <div class="card">
+                    <h4>Próxima Sessão</h4>
+                    <p>Joana Silva - 15:00 hoje</p>
+                </div>
+                <button class="btn btn-primary">Novo Plano</button>
+                <button class="btn btn-secondary">Ver Relatórios</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
