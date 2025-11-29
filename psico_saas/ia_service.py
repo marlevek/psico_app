@@ -1,59 +1,90 @@
-# psico_saas/ia_service.py
+# psico_saas/ia_services.py
 
-import os
-import openai
+from openai import OpenAI
+from django.conf import settings
 
-# Use um modelo de chat. gpt-3.5-turbo é mais rápido e barato.
-MODEL_NAME = "gpt-3.5-turbo" 
+# Inicializa o cliente da OpenAI
+# Assume que OPENAI_API_KEY está definido em settings.py ou no .env
 
-def revisar_plano_tratamento(plano_data: dict) -> str:
+def generate_task_exercise(abordagem_teorica, tema_principal, detalhes_personalizacao=None):
     """
-    Chama a API da OpenAI para revisar a coerência de um plano de tratamento.
-    """
-    
-    # 1. Configura o cliente da OpenAI
-    # Ele usará a variável de ambiente OPENAI_API_KEY
-    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-    # 2. Define a persona e a instrução (SYSTEM PROMPT)
-    system_prompt = """
-    Você é um assistente de supervisão clínica altamente experiente, especializado em Terapia Cognitivo-Comportamental (TCC).
-    Sua tarefa é analisar o Plano de Tratamento Psicológico fornecido pelo usuário e fornecer uma REVISÃO CONSTRUTIVA detalhada.
-
-    Seu feedback deve ser estruturado nos seguintes pontos:
-    1. **Coerência Diagnóstico-Metas:** Avalie se as Metas de Longo Prazo são uma resposta lógica ao Diagnóstico Base.
-    2. **Alinhamento Terapêutico (TCC):** Verifique se as Metas de Curto Prazo estão formuladas de forma CLARA, MENSURÁVEL, e se são diretamente ALINHADAS com os princípios da TCC (focadas em pensamentos/comportamentos).
-    3. **Sugestões de Refinamento:** Sugira até 2 pequenos ajustes nas metas de Curto Prazo ou nas Técnicas/Abordagens para maximizar a eficácia do plano.
-
-    Formate sua resposta usando markdown (títulos, listas, negrito) para fácil leitura.
-    Comece com um breve resumo de aprovação ou ressalva.
-    """
-
-    # 3. Monta o conteúdo do plano (USER PROMPT)
-    user_content = f"""
-    [PLANO DE TRATAMENTO PARA REVISÃO]
-    
-    Diagnóstico Base: {plano_data.get('diagnostico_base', 'Não fornecido')}
-    Metas de Longo Prazo: {plano_data.get('metas_longo_prazo', 'Não fornecido')}
-    Metas de Curto Prazo: {plano_data.get('metas_curto_prazo', 'Não fornecido')}
-    Técnicas/Abordagem: {plano_data.get('tecnicas_abordagem', 'Não fornecido')}
+    Gera um exercício de casa personalizado usando a API Chat Completions.
     """
     
+    # 0. Inicialização do Cliente da OpenAI (Tratamento de erro de chave)
     try:
-        # 4. Chamada da API
+        # Tenta inicializar o cliente
+        client = OpenAI(api_key=settings.OPENAI_API_KEY) 
+    except AttributeError:
+        # Se a chave não estiver configurada no settings.py, retorna imediatamente
+        return "Erro de Configuração: A chave OPENAI_API_KEY não foi encontrada nas configurações do Django."
+
+    # 1. Monta o Prompt (Instrução para a IA)
+    prompt = f"""
+    Você é um assistente de psicólogo especializado em criação de tarefas de casa e exercícios práticos.
+    Gere um exercício ou tarefa de casa detalhada e prática para um paciente.
+    
+    Abordagem Teórica Principal: {abordagem_teorica}
+    Tema Principal da Sessão/Tarefa: {tema_principal}
+    
+    Requisitos Adicionais para Personalização (Detalhes do Paciente):
+    {detalhes_personalizacao if detalhes_personalizacao else 'Nenhum detalhe adicional fornecido.'}
+    
+    A resposta deve ser estruturada em tópicos, contendo:
+    1. Título criativo do exercício.
+    2. Objetivo (O que o paciente deve aprender).
+    3. Instruções passo a passo.
+    4. Perguntas de Reflexão (Para a próxima sessão).
+    """
+
+    # 2. Chamada à API (Try/Except específico para erros de API, como limites de taxa ou chave inválida)
+    try:
         response = client.chat.completions.create(
-            model=MODEL_NAME,
+            model="gpt-3.5-turbo",  
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content}
+                {"role": "system", "content": "Você é um assistente de psicólogo que cria tarefas de casa."},
+                {"role": "user", "content": prompt}
             ],
-            temperature=0.5, # Temperatura mais baixa para respostas focadas
+            temperature=0.7, 
+            max_tokens=800
         )
-        # Retorna o conteúdo da resposta
+
+        # 3. Retorna o conteúdo da resposta
         return response.choices[0].message.content
-        
-    except openai.APIError as e:
-        # Em caso de erro (ex: chave inválida, limite de uso), retorna uma mensagem de erro
-        return f"ERRO NA IA (OpenAI API): Não foi possível obter o feedback. Verifique sua chave e uso. Detalhes: {str(e)}"
+    
     except Exception as e:
-        return f"ERRO GERAL: Ocorreu um erro ao processar a requisição. Detalhes: {str(e)}"
+        # Captura erros de rede, limites, ou falha geral da API
+        return f"Erro na API: {str(e)}"
+# --------------------------------------------------------------------------------------
+# Opcional: Função de Revisão do Plano de Tratamento (Será usada mais tarde)
+def generate_plano_review(plano_data):
+    """
+    Gera um feedback de revisão para o Plano de Tratamento.
+    """
+    
+    # ⬅️ PASSO 0: Inicialização do Cliente da OpenAI (Corrigido)
+    try:
+        # Tenta inicializar o cliente DENTRO da função
+        client = OpenAI(api_key=settings.OPENAI_API_KEY) 
+    except AttributeError:
+        # Se a chave não estiver configurada no settings.py, retorna imediatamente
+        return "Erro de Configuração: A chave OPENAI_API_KEY não foi encontrada nas configurações do Django."
+
+
+    # 1. Monta o Prompt
+    prompt = f"Revise e comente o Plano de Tratamento com o Título: {plano_data.get('titulo', 'N/D')}. Diagnóstico: {plano_data.get('diagnostico_base', 'N/D')}. Metas: {plano_data.get('metas_tratamento', 'N/D')}. Abordagem: {plano_data.get('abordagem', 'N/D')}."
+
+    # 2. Chamada à API (Agora o 'client' está definido)
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Você é um revisor de planos de tratamento, focando em consistência e clareza."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5,
+            max_tokens=500
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Erro na API durante a revisão do plano: {str(e)}"

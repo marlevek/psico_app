@@ -1,0 +1,235 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisor de Planos de Tratamento IA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Estilos customizados para melhorar o visual */
+        body { font-family: 'Inter', sans-serif; margin: 0; background-color: #f0f4f8; }
+        .container-fluid { padding: 40px; }
+        .card { border: none; border-radius: 12px; }
+        .card-header { border-radius: 12px 12px 0 0 !important; background-color: #007bff; }
+        .card-footer { border-radius: 0 0 12px 12px !important; }
+        .feedback { 
+            background-color: #e8f9e8; 
+            border-left: 5px solid #28a745; 
+            padding: 15px; 
+            margin-top: 20px; 
+            border-radius: 8px; 
+        }
+        .feedback h2 { color: #1e7e34; }
+        .form-control:focus { box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25); }
+        .btn-success { background-color: #28a745; border-color: #28a745; }
+        .btn-success:hover { background-color: #218838; border-color: #1e7e34; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h1 class="h4 mb-0">{% if plano %}Editar Plano{% else %}Criar Novo Plano{% endif %}</h1>
+                <!-- CORRIGIDO: Removida a referência ao namespace 'psico_saas:' para resolver o NoReverseMatch -->
+                <a href="{% url 'listar_planos' %}" class="btn btn-sm btn-light">Ver Histórico</a>
+            </div>
+            <div class="card-body">
+                
+                {% if error_message %}
+                    <div class="alert alert-danger">{{ error_message }}</div>
+                {% endif %}
+                
+                <div class="alert alert-light small border p-2 mb-4">
+                    <p class="mb-0"><strong>Psicólogo Responsável:</strong> {{ request.user.username }}</p>
+                    <p class="mb-0"><strong>Data de Criação no Sistema:</strong> {% if plano %}{{ plano.data_criacao|date:"d/m/Y H:i" }}{% else %}Nova Criação{% endif %}</p>
+                </div>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                   <!-- Campo Paciente (Select) -->
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="paciente" class="form-label">Paciente:</label>
+        <select id="paciente" name="paciente" 
+                class="form-select {% if form_errors.paciente %}is-invalid{% endif %}" required>
+            
+            <option value="">Selecione o paciente...</option>
+
+            {% for paciente in pacientes %}
+                <option 
+                    value="{{ paciente.pk }}" 
+                    data-idade="{{ paciente.get_idade }}"
+                    {% if plano and plano.paciente.pk == paciente.pk %}selected{% endif %}
+                    {% if request_post.paciente and request_post.paciente == paciente.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ paciente.nome_completo }}
+                </option>
+            {% endfor %}
+        </select>
+        {% if form_errors.paciente %}
+            <div class="invalid-feedback">
+                {% for error in form_errors.paciente %}{{ error }}{% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6 mb-3 d-flex align-items-end">
+        <div class="alert alert-info py-2 px-3 mb-0 w-100">
+            <strong>Idade do Paciente:</strong> <span id="idade_paciente">
+                {% if plano and plano.paciente %}{{ plano.paciente.get_idade }}{% else %}N/D{% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Campo Data de Início Prevista -->
+<div class="mb-3">
+    <label for="data_inicio_prevista" class="form-label">Data de Início Prevista do Plano:</label>
+    <input type="date" id="data_inicio_prevista" name="data_inicio_prevista" 
+           class="form-control {% if form_errors.data_inicio_prevista %}is-invalid{% endif %}" 
+           value="{% if request_post.data_inicio_prevista %}{{ request_post.data_inicio_prevista }}{% elif plano %}{{ plano.data_inicio_prevista|date:'Y-m-d' }}{% endif %}" 
+           required>
+    {% if form_errors.data_inicio_prevista %}
+        <div class="invalid-feedback">
+            {% for error in form_errors.data_inicio_prevista %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+                    <!-- Campo Título do Plano -->
+                    {% with field_name='titulo' %}
+                        <div class="mb-3">
+                            <label for="{{ field_name }}" class="form-label">Título do Plano:</label>
+                            <input type="text" id="{{ field_name }}" name="{{ field_name }}" 
+                                   class="form-control {% if form_errors|get:field_name %}is-invalid{% endif %}" 
+                                   value="{% if request_post|get:field_name %}{{ request_post|get:field_name }}{% elif plano %}{{ plano.titulo }}{% endif %}" 
+                                   required>
+                            {% if form_errors|get:field_name %}
+                                <div class="invalid-feedback">
+                                    {% for error in form_errors|get:field_name %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endwith %}
+
+                    <!-- Campo Diagnóstico Base -->
+                    {% with field_name='diagnostico_base' %}
+                        <div class="mb-3">
+                            <label for="{{ field_name }}" class="form-label">Diagnóstico Base / Hipótese:</label>
+                            <textarea id="{{ field_name }}" name="{{ field_name }}" rows="3" 
+                                      class="form-control {% if form_errors|get:field_name %}is-invalid{% endif %}" 
+                                      required>{% if request_post|get:field_name %}{{ request_post|get:field_name }}{% elif plano %}{{ plano.diagnostico_base }}{% endif %}</textarea>
+                            {% if form_errors|get:field_name %}
+                                <div class="invalid-feedback">
+                                    {% for error in form_errors|get:field_name %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endwith %}
+
+                    <!-- Campo Metas de Tratamento -->
+                    {% with field_name='metas_tratamento' %}
+                        <div class="mb-3">
+                            <label for="{{ field_name }}" class="form-label">Metas de Tratamento (Longo e Curto Prazo):</label>
+                            <textarea id="{{ field_name }}" name="{{ field_name }}" rows="7" 
+                                      class="form-control {% if form_errors|get:field_name %}is-invalid{% endif %}" 
+                                      required>{% if request_post|get:field_name %}{{ request_post|get:field_name }}{% elif plano %}{{ plano.metas_tratamento }}{% endif %}</textarea>
+                            <small class="form-text text-muted">Inclua as metas a longo e curto prazo neste único campo para a IA.</small>
+                            {% if form_errors|get:field_name %}
+                                <div class="invalid-feedback">
+                                    {% for error in form_errors|get:field_name %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endwith %}
+                    
+                    <!-- Campo Abordagem Teórica -->
+                    {% with field_name='abordagem' %}
+                        <div class="mb-3">
+                            <label for="{{ field_name }}" class="form-label">Abordagem Teórica (Ex: TCC, Humanista):</label>
+                            <textarea id="{{ field_name }}" name="{{ field_name }}" rows="2" 
+                                      class="form-control {% if form_errors|get:field_name %}is-invalid{% endif %}" 
+                                      required>{% if request_post|get:field_name %}{{ request_post|get:field_name }}{% elif plano %}{{ plano.abordagem }}{% endif %}</textarea>
+                            {% if form_errors|get:field_name %}
+                                <div class="invalid-feedback">
+                                    {% for error in form_errors|get:field_name %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endwith %}
+
+                    <!-- Campo Frequência das Sessões -->
+                    {% with field_name='frequencia_sessoes' %}
+                        <div class="mb-3">
+                            <label for="{{ field_name }}" class="form-label">Frequência das Sessões:</label>
+                            <input type="text" id="{{ field_name }}" name="{{ field_name }}" 
+                                   class="form-control {% if form_errors|get:field_name %}is-invalid{% endif %}" 
+                                   value="{% if request_post|get:field_name %}{{ request_post|get:field_name }}{% elif plano %}{{ plano.frequencia_sessoes }}{% endif %}"
+                                   placeholder="Ex: Semanalmente, Quinzenalmente" required>
+                            {% if form_errors|get:field_name %}
+                                <div class="invalid-feedback">
+                                    {% for error in form_errors|get:field_name %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endwith %}
+
+                    <!-- Botão de Submissão -->
+                    <button type="submit" class="btn btn-success btn-lg w-100 mt-4">
+                        {% if plano %}
+                            Salvar Alterações
+                        {% else %}
+                            Revisar e Salvar com IA
+                        {% endif %}
+                    </button>
+                </form>
+
+                <!-- Feedback da IA -->
+                {% if feedback_ia %}
+                    <div class="feedback mt-4 p-3 shadow-sm">
+                        <h2 class="h5 text-success">Feedback da IA</h2>
+                        <div class="border-top pt-2">
+                            <p class="mb-0">{{ feedback_ia|linebreaks }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-end text-muted small">
+                Logado como: {{ request.user.username }} | <a href="{% url 'logout' %}" class="text-danger">Sair</a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script para a Idade do Paciente -->
+    <script>
+    // Obter referências para os elementos
+    const pacienteSelect = document.getElementById('paciente');
+    const idadeDisplay = document.getElementById('idade_paciente');
+
+    // Verifica se o elemento 'paciente' existe antes de adicionar o listener
+    if (pacienteSelect) {
+        pacienteSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            // Verifica se a opção foi selecionada (e não a opção padrão vazia)
+            const idade = selectedOption ? selectedOption.getAttribute('data-idade') : null;
+
+            // Atualiza a idade na caixa de informação
+            if (idadeDisplay) {
+                idadeDisplay.textContent = idade || 'N/D';
+            }
+        });
+    }
+
+    // Ativa a atualização no carregamento da página (para o caso de edição)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verifica se pacienteSelect existe antes de tentar ler 'value'
+        if (pacienteSelect && pacienteSelect.value) {
+            // Simula o evento de mudança se um paciente já estiver selecionado
+            pacienteSelect.dispatchEvent(new Event('change'));
+        }
+    });
+    </script>
+</body>
+</html>

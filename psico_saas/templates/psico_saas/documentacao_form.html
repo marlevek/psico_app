@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Assistente de Documentação - Psico SaaS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card shadow-lg">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h1 class="h4 mb-0">Assistente de Documentação de Sessão (IA)</h1>
+                <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light">Voltar ao Dashboard</a>
+            </div>
+            <div class="card-body">
+                
+                {% if error_message %}
+                    <div class="alert alert-danger">{{ error_message }}</div>
+                {% endif %}
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+    <label for="paciente" class="form-label">Paciente:</label>
+    <select id="paciente" name="paciente" class="form-select" required>
+        <option value="">Selecione o paciente...</option>
+        {% for paciente in pacientes %}
+            <option value="{{ paciente.pk }}" 
+                {% if request.POST.paciente|slugify == paciente.pk|slugify %}selected{% endif %}>
+                {{ paciente.nome_completo }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+                    <div class="mb-3">
+                        <label for="data_sessao" class="form-label">Data da Sessão:</label>
+                        <input type="date" id="data_sessao" name="data_sessao" class="form-control" value="{{ request.POST.data_sessao|default:'' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="anotacoes_brutas" class="form-label">Anotações da Sessão (Notas ou Transcrição):</label>
+                        <textarea id="anotacoes_brutas" name="anotacoes_brutas" class="form-control" rows="8" required>{{ request.POST.anotacoes_brutas|default:'' }}</textarea>
+                        <div class="form-text">Insira suas notas brutas. A IA fará o resumo, a sugestão de diagnóstico e a análise de padrões de linguagem.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">Processar Documentação com IA</button>
+                </form>
+
+                {% if resumo_ia %}
+                    <div class="mt-4 border-top pt-3">
+                        <h2 class="h5 text-primary">Resultado do Processamento da IA</h2>
+                        
+                        <div class="mb-3 p-3 bg-light rounded">
+                            <h6 class="text-success">Resumo Profissional:</h6>
+                            <p class="small mb-0">{{ resumo_ia|linebreaks }}</p>
+                        </div>
+                        
+                        <div class="mb-3 p-3 bg-light rounded">
+                            <h6 class="text-success">Sugestão de Diagnóstico (CID/DSM):</h6>
+                            <p class="small mb-0">{{ sugestao_diagnostico }}</p>
+                        </div>
+                        
+                        <div class="mb-3 p-3 bg-light rounded">
+                            <h6 class="text-success">Padrões de Linguagem Identificados:</h6>
+                            <p class="small mb-0">{{ padroes_linguagem|linebreaks }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-end text-muted small">
+                Logado como: {{ request.user.username }} | <a href="{% url 'logout' %}" class="text-danger">Sair</a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

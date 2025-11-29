@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Histórico de Exercícios - Psico SaaS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">Histórico de Exercícios e Tarefas</h1>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary me-2">Dashboard</a>
+                <a href="{% url 'tarefas_form' %}" class="btn btn-primary">Gerar Novo</a>
+            </div>
+        </div>
+        
+        {% if tarefas %}
+            <div class="table-responsive d-none d-sm-block">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 15%">Data</th>
+                            <th style="width: 30%">Tema</th>
+                            <th style="width: 25%">Abordagem</th>
+                            <th style="width: 20%">Resumo</th>
+                            <th style="width: 10%" class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tarefa in tarefas %}
+                        <tr>
+                            <td>{{ tarefa.data_criacao|date:"d/m/Y H:i" }}</td>
+                            <td>{{ tarefa.tema_principal }}</td>
+                            <td>{{ tarefa.get_abordagem_teorica_display }}</td>
+                            <td>{{ tarefa.exercicio_ia|truncatechars:50 }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'tarefas_detail' pk=tarefa.pk %}" class="btn btn-sm btn-info">Ver/Imprimir</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="d-sm-none">
+                {% for tarefa in tarefas %}
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header bg-light small">
+                            **{{ tarefa.tema_principal }}**
+                        </div>
+                        <div class="card-body pt-2">
+                            <p class="card-text mb-2 small">
+                                <small class="text-muted">**Abordagem:**</small> {{ tarefa.get_abordagem_teorica_display }}<br>
+                                <small class="text-muted">**Data:**</small> {{ tarefa.data_criacao|date:"d/m/Y H:i" }}
+                            </p>
+                            <a href="{% url 'tarefas_detail' pk=tarefa.pk %}" class="btn btn-sm btn-info w-100">Ver Exercício Completo</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        
+        {% else %}
+            <div class="alert alert-info">
+                Você ainda não gerou nenhum exercício.
+            </div>
+        {% endif %}
+
+        <div class="text-end mt-4">
+            Logado como: **{{ request.user.username }}** | <a href="{% url 'logout' %}" class="text-danger">Sair</a>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

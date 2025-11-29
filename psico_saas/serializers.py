@@ -1,102 +1,178 @@
-import os
-from rest_framework import serializers
-from .models import PlanoTratamento
-from openai import OpenAI # Importar a classe OpenAI
+# psico_saas/serializers.py
 
+from rest_framework import serializers
+from .models import PlanoTratamento, DocumentacaoSessao, TarefaExercicios, Paciente
+import os
+import json
+from openai import OpenAI # ⬅️ IMPORT CORRIGIDO
+
+# ------------------------------------------------------------------
+# CONFIGURAÇÃO DO CLIENTE OPENAI
+# ------------------------------------------------------------------
+# O cliente busca a chave automaticamente da variável de ambiente OPENAI_API_KEY
+try:
+    client = OpenAI() # ⬅️ CLIENTE CORRIGIDO E INSTANCIADO
+except Exception as e:
+    # Caso a chave não esteja definida ou haja outro erro de inicialização
+    print(f"Alerta: Falha ao inicializar o cliente OpenAI. Verifique sua chave API. Erro: {e}")
+    client = None
+
+# ------------------------------------------------------------------
+# 1. PLANO DE TRATAMENTO SERIALIZER
+# ------------------------------------------------------------------
 class PlanoTratamentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanoTratamento
-        fields = '__all__'
+        fields = ['id', 'paciente', 'titulo', 'abordagem', 'diagnostico_base', 
+                  'frequencia_sessoes', 'metas_tratamento', 'data_inicio_prevista',  # ⬅️ ADICIONAR ESTE CAMPO
+                  'feedback_ia', 'data_criacao']
         read_only_fields = ['feedback_ia', 'data_criacao']
+
+    def validate(self, data):
+        """
+        Validação customizada para garantir que campos obrigatórios estão presentes
+        """
+        campos_obrigatorios = ['paciente', 'titulo', 'diagnostico_base', 'metas_tratamento', 'data_inicio_prevista']
         
-    def gerar_prompt(self, valid_data):
-        """Função para construir o prompt com base nos dados do plano."""
-        # Coloque a sua lógica de criação de prompt aqui, usando valid_data
-        # Exemplo:
-        return f"""
-        Você é um revisor de plano de tratamento especializado em TCC.
-        Diagnóstico: {valid_data['diagnostico_base']}
-        Metas a Longo Prazo: {valid_data['metas_longo_prazo']}
-        Metas a Curto Prazo: {valid_data['metas_curto_prazo']}
-        Técnicas/Abordagem: {valid_data['tecnicas_abordagem']}
+        for campo in campos_obrigatorios:
+            if campo not in data or not data[campo]:
+                raise serializers.ValidationError({campo: "Este campo é obrigatório."})
         
-        Sua tarefa é revisar este plano. Se ele estiver conciso, devolva 'OK'. Se precisar de ajustes ou for muito vago, devolva um feedback estruturado e construtivo.
+        return data
+
+    def create(self, validated_data):
+        # 1. Montar a instrução para a IA
+        diagnostico = validated_data.get('diagnostico_base')
+        metas = validated_data.get('metas_tratamento')
+        
+        prompt_texto = f"""
+        Você é um assistente de revisão de planos de tratamento. Analise o seguinte plano e forneça um feedback construtivo e conciso (máximo 150 palavras).
+        Foque em sugerir aprimoramentos, validação da coerência entre diagnóstico e metas, ou estratégias adicionais (ex: uso de técnicas de mindfulness, psicoeducação, etc.).
+        
+        Diagnóstico Base: {diagnostico}
+        Metas de Tratamento: {metas}
         """
         
+        # 2. Chamar a OpenAI
+        if client:
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Você é um assistente de revisão de planos."},
+                        {"role": "user", "content": prompt_texto}
+                    ]
+                )
+                
+                # 3. Extrair o texto da IA
+                feedback = response.choices[0].message.content
+                validated_data['feedback_ia'] = feedback
+                
+            except Exception as e:
+                validated_data['feedback_ia'] = "Erro na comunicação com a IA."
+                print(f"Erro na API da OpenAI (Plano): {e}")
+        else:
+            validated_data['feedback_ia'] = "Cliente OpenAI não configurado."
+
+        return PlanoTratamento.objects.create(**validated_data)
+
+
+# ------------------------------------------------------------------
+# 2. DOCUMENTAÇÃO SESSÃO SERIALIZER (Lógica da IA)
+# ------------------------------------------------------------------
+class DocumentacaoSessaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentacaoSessao
+        fields = ['id', 'paciente', 'data_sessao', 'anotacoes_brutas', 
+                  'resumo_ia', 'sugestao_diagnostico', 'padroes_linguagem', 'data_criacao']
+        read_only_fields = ['resumo_ia', 'sugestao_diagnostico', 'padroes_linguagem', 'data_criacao']
+
     def create(self, validated_data):
-    # 1. INICIALIZAÇÃO DA API: A forma correta para produção (dentro do método)
-        try:
-            chave_api = os.environ.get('OPENAI_API_KEY')
-            if not chave_api:
-                # Esta exceção só será levantada se a variável não estiver no Railway
-                raise ValueError("OPENAI_API_KEY não configurada no ambiente.")
-                
-            client = OpenAI(api_key=chave_api)
-
-            # 2. Geração do Prompt
-            prompt = self.gerar_prompt(validated_data)
-
-            # 3. Chamada da API Externa
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo", # Modelo rápido e eficiente
-                messages=[
-                    {"role": "system", "content": "Você é um revisor de planos de tratamento especializado em TCC. Seu feedback deve ser construtivo e breve."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7 # Adiciona criatividade controlada
-            )
-            
-            # 4. Extrair o Feedback
-            feedback_ia = response.choices[0].message.content
-            
-        except ValueError as e:
-            feedback_ia = f"ERRO INTERNO: Falha na API da IA. Verifique as variáveis de ambiente. Detalhe: {e}"
-        except Exception as e:
-            # Captura erros de rede ou da própria API da OpenAI
-            feedback_ia = f"ERRO NA CHAMADA DA API EXTERNA. Detalhe: {e}"
-
-        # 5. Salvar o Plano COM o Feedback da IA
-        return PlanoTratamento.objects.create(
-            **validated_data, 
-            feedback_ia=feedback_ia
-        )    
+        # 1. Montar a instrução para a IA
+        anotacoes = validated_data.get('anotacoes_brutas')
         
+        prompt_texto = f"""
+        Você é um assistente de documentação psicológica. Analise as anotações e gere três saídas no formato JSON: um resumo conciso, sugestão de diagnóstico (CID-10 ou DSM-5) e padrões de linguagem.
+
+        Anotações da Sessão: {anotacoes}
+
+        Gere a resposta em um objeto JSON válido, contendo as chaves EXATAS: resumo_ia, sugestao_diagnostico, padroes_linguagem.
+        """
         
-        ''''def create(self, validated_data):
-        # 1. INICIALIZAÇÃO DA API (CORREÇÃO CRÍTICA):
-        # Mova a inicialização para DENTRO do método para garantir que a 
-        # OPENAI_API_KEY do Railway é lida.
-        try:
-            chave_api = os.environ.get('OPENAI_API_KEY')
-            if not chave_api:
-                # Se a chave não for encontrada (o que causava o crash)
-                raise ValueError("OPENAI_API_KEY não configurada no ambiente.")
+        # 2. Chamar a OpenAI
+        if client: # Verifica se o cliente foi inicializado com sucesso
+            try:
+                response = client.chat.completions.create( # ⬅️ CHAMADA CORRIGIDA
+                    model="gpt-3.5-turbo-1106", 
+                    messages=[
+                        {"role": "system", "content": "Você deve responder apenas com um objeto JSON válido."},
+                        {"role": "user", "content": prompt_texto}
+                    ],
+                    response_format={"type": "json_object"} 
+                )
                 
-            client = OpenAI(api_key=chave_api)
+                # 3. Extrair dados JSON
+                ia_output = json.loads(response.choices[0].message.content)
+                
+                # 4. Atualizar os dados validados com o output da IA
+                validated_data['resumo_ia'] = ia_output.get('resumo_ia')
+                validated_data['sugestao_diagnostico'] = ia_output.get('sugestao_diagnostico')
+                validated_data['padroes_linguagem'] = ia_output.get('padroes_linguagem')
+                
+            except Exception as e:
+                validated_data['resumo_ia'] = "Erro na comunicação com a IA."
+                raise serializers.ValidationError({"detail": f"Erro na API da OpenAI: {e}"})
+        else:
+            raise serializers.ValidationError({"detail": "Erro de processamento: Cliente OpenAI não configurado."})
 
-            # 2. Geração do Prompt e Chamada da API
-            prompt = self.gerar_prompt(validated_data)
+        return DocumentacaoSessao.objects.create(**validated_data)
 
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo", # Use o modelo que desejar
-                messages=[
-                    {"role": "system", "content": "Você é um revisor de planos de tratamento."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            
-            # 3. Extrair o Feedback
-            feedback_ia = response.choices[0].message.content
-            
-        except ValueError as e:
-            # Captura a exceção se a chave não for encontrada
-            feedback_ia = f"ERRO INTERNO: Falha na API da IA. Detalhe: {e}"
-        except Exception as e:
-            # Captura qualquer outro erro da API
-            feedback_ia = f"ERRO NA CHAMADA DA API. Detalhe: {e}"
 
-        # 4. Salvar o Plano com o Feedback
-        return PlanoTratamento.objects.create(
-            **validated_data, 
-            feedback_ia=feedback_ia
-        )'''
+# ------------------------------------------------------------------
+# 3. TAREFA/EXERCÍCIOS SERIALIZER (Lógica da IA)
+# ------------------------------------------------------------------
+class TarefaExerciciosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TarefaExercicios
+        fields = ['id', 'paciente', 'abordagem_teorica', 'tema_principal', 'detalhes_personalizacao', 
+                  'exercicio_ia', 'data_criacao']
+        read_only_fields = ['exercicio_ia', 'data_criacao']
+
+    def create(self, validated_data):
+        # 1. Montar a instrução para a IA
+        abordagem = validated_data.get('abordagem_teorica')
+        tema = validated_data.get('tema_principal')
+        detalhes = validated_data.get('detalhes_personalizacao', 'Não há detalhes adicionais.')
+        
+        prompt_texto = f"""
+        Você é um Gerador de Tarefas Terapêuticas. Crie um exercício prático e personalizado para um paciente.
+
+        Abordagem Teórica: {abordagem}
+        Tema Principal da Tarefa: {tema}
+        Detalhes de Personalização do Paciente: {detalhes}
+
+        Crie um exercício detalhado, formatado com cabeçalhos e listas, contendo: Título, Objetivo, Passos para a execução (numerados) e O que o paciente deve observar ou anotar.
+        """
+        
+        # 2. Chamar a OpenAI
+        if client: # Verifica se o cliente foi inicializado com sucesso
+            try:
+                response = client.chat.completions.create( # ⬅️ CHAMADA CORRIGIDA
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Você é um gerador de tarefas. Responda apenas com o texto do exercício pronto."},
+                        {"role": "user", "content": prompt_texto}
+                    ]
+                )
+                
+                # 3. Extrair o texto da IA
+                exercicio_gerado = response.choices[0].message.content
+                validated_data['exercicio_ia'] = exercicio_gerado
+                
+            except Exception as e:
+                validated_data['exercicio_ia'] = "Erro na comunicação com a IA ao gerar o exercício."
+                raise serializers.ValidationError({"detail": f"Erro na API da OpenAI: {e}"})
+        else:
+            raise serializers.ValidationError({"detail": "Erro de processamento: Cliente OpenAI não configurado."})
+
+        return TarefaExercicios.objects.create(**validated_data)
