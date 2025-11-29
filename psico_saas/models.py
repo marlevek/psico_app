@@ -7,16 +7,18 @@ from django.utils import timezone
 
 User = get_user_model()
 
+
 class Paciente(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     nome_completo = models.CharField(max_length=255)
     data_nascimento = models.DateField(blank=True, null=True)
-    contato_emergencia = models.CharField(max_length=100, blank=True, null=True)
+    contato_emergencia = models.CharField(
+        max_length=100, blank=True, null=True)
     data_cadastro = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return self.nome_completo
-    
+
     class Meta:
         verbose_name = 'Paciente'
         verbose_name_plural = 'Pacientes'
@@ -27,11 +29,13 @@ class Paciente(models.Model):
         if self.data_nascimento:
             today = date.today()
             # Calcula a diferença de anos e subtrai 1 se o aniversário ainda não ocorreu este ano
-            idade = today.year - self.data_nascimento.year - ((today.month, today.day) < (self.data_nascimento.month, self.data_nascimento.day))
+            idade = today.year - self.data_nascimento.year - \
+                ((today.month, today.day) <
+                 (self.data_nascimento.month, self.data_nascimento.day))
             return idade
-        return "N/D" # Não Disponível
-    
-    
+        return "N/D"  # Não Disponível
+
+
 class PlanoTratamento(models.Model):
     # Campos obrigatórios para o contexto do plano
     usuario = models.ForeignKey(
@@ -41,41 +45,42 @@ class PlanoTratamento(models.Model):
         # default=1
     )
     paciente = models.ForeignKey(
-        Paciente, 
+        Paciente,
         on_delete=models.CASCADE,
-        related_name= 'planos',
+        related_name='planos',
         # Removendo blank=True, null=True, pois o Paciente deve ser obrigatório agora.
         # Se você ainda precisa disso por conta de migração, mantenha.
     )
-    data_inicio_prevista = models.DateField(verbose_name='Data de Início Prevista', default=timezone.now)
+    data_inicio_prevista = models.DateField(
+        verbose_name='Data de Início Prevista', default=timezone.now)
     titulo = models.CharField(max_length=255)
     data_criacao = models.DateTimeField(auto_now_add=True)
-    
+
     # Informações chave para a revisão da IA
     diagnostico_base = models.TextField(
         help_text="Hipótese ou diagnóstico (ex: F32.9 - Episódio depressivo não especificado)."
     )
-    
+
     # ⬅️ NOVO CAMPO UNIFICADO
-    metas_tratamento = models.TextField( 
+    metas_tratamento = models.TextField(
         help_text="Metas a Longo e Curto Prazo (unificadas)."
     )
-    
+
     # ⬅️ NOVO CAMPO PARA ABORDAGEM TEÓRICA
-    abordagem = models.TextField( 
+    abordagem = models.TextField(
         help_text="A abordagem teórica utilizada (ex: TCC, Psicanálise, Humanista)."
     )
-    
+
     # ⬅️ NOVO CAMPO PARA FREQUÊNCIA (Adicionado no template)
     frequencia_sessoes = models.CharField(
-        max_length=100, 
+        max_length=100,
         help_text="Ex: Semanalmente, Quinzenalmente."
     )
-    
+
     # O feedback da IA será salvo aqui
     feedback_ia = models.TextField(
-        blank=True, 
-        null=True, 
+        blank=True,
+        null=True,
         help_text="O resumo ou a revisão fornecida pela Inteligência Artificial."
     )
 
@@ -89,24 +94,26 @@ class PlanoTratamento(models.Model):
 
 class DocumentacaoSessao(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='documentacoes', blank=True, null=True)
+    paciente = models.ForeignKey(
+        Paciente, on_delete=models.CASCADE, related_name='documentacoes', blank=True, null=True)
     data_sessao = models.DateField()
-    anotacoes_brutas = models.TextField() # Entrada do usuário (notas/transcrição)
-    
+    anotacoes_brutas = models.TextField()  # Entrada do usuário (notas/transcrição)
+
     # Saídas da IA
     resumo_ia = models.TextField(blank=True, null=True)
-    sugestao_diagnostico = models.CharField(max_length=255, blank=True, null=True) # CID/DSM
+    sugestao_diagnostico = models.CharField(
+        max_length=255, blank=True, null=True)  # CID/DSM
     padroes_linguagem = models.TextField(blank=True, null=True)
-    
+
     data_criacao = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Sessão de {self.data_sessao} por {self.usuario.username}"
-    
+
     class Meta:
         verbose_name = "Documentação da Sessão"
         verbose_name_plural = "Documentações das Sessões"
-        
+
 
 class TarefaExercicios(models.Model):
     ABORDAGENS = [
@@ -117,26 +124,28 @@ class TarefaExercicios(models.Model):
     ]
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='tarefas', blank=True, null=True)
-    
+    paciente = models.ForeignKey(
+        Paciente, on_delete=models.CASCADE, related_name='tarefas', blank=True, null=True)
+
     # Entradas do Usuário
     abordagem_teorica = models.CharField(max_length=50, choices=ABORDAGENS)
     tema_principal = models.CharField(max_length=255)
-    detalhes_personalizacao = models.TextField(blank=True, null=True) # Ex: "Paciente tem 16 anos e gosta de música"
-    
+    # Ex: "Paciente tem 16 anos e gosta de música"
+    detalhes_personalizacao = models.TextField(blank=True, null=True)
+
     # Saída da IA
     exercicio_ia = models.TextField(blank=True, null=True)
-    
+
     data_criacao = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Exercício de {self.paciente.nome_completo} sobre '{self.tema_principal}' ({self.abordagem_teorica})"
-    
+
     class Meta:
         verbose_name = "Tarefa/Exercício"
         verbose_name_plural = "Tarefas/Exercícios"
-        
-        
+
+
 class ConteudoEducacional(models.Model):
     TIPOS_CONTEUDO = [
         ('POST_REDES_SOCIAIS', 'Post para Redes Sociais'),

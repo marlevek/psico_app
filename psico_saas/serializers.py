@@ -195,7 +195,7 @@ class TarefaExerciciosSerializer(serializers.ModelSerializer):
 
 
 # ------------------------------------------------------------------
-# 4. CONTEÚDO EDUCACIONAL SERIALIZER
+# 4. CONTEÚDO EDUCACIONAL SERIALIZER - VERSÃO CORRIGIDA
 # ------------------------------------------------------------------
 class ConteudoEducacionalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -331,6 +331,3 @@ class ConteudoEducacionalSerializer(serializers.ModelSerializer):
         conteudo = ConteudoEducacional.objects.create(**validated_data)
         print("CONTEÚDO CRIADO NO BANCO:", conteudo.__dict__)  # DEBUG
         return conteudo
-    
-    
-    
