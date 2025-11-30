@@ -193,6 +193,7 @@
 </div>
 
 
+
 <style>
     .pacientes-list-section {
         margin-top: var(--space-lg);
@@ -205,7 +206,168 @@
         font-weight: 600;
     }
 
-    /* ... (mantenha todo o seu CSS atual) ... */
+    /* Tabela Desktop */
+    .desktop-table {
+        display: block;
+    }
+
+    .table {
+        width: 100%;
+        background: var(--surface);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+    }
+
+    .table th {
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+        padding: var(--space-sm);
+    }
+
+    .table td {
+        padding: var(--space-sm);
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .idade-badge {
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .sexo-badge {
+        background: var(--background-alt);
+        color: var(--text-muted);
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 0.7rem;
+    }
+
+    .email-link {
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .email-link:hover {
+        text-decoration: underline;
+    }
+
+    .actions-buttons {
+        display: flex;
+        gap: var(--space-xs);
+    }
+
+    .actions-buttons .btn {
+        padding: var(--space-xs);
+        font-size: 0.8rem;
+    }
+
+    /* Cards Mobile */
+    .mobile-cards {
+        display: none;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .paciente-card {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius);
+        padding: var(--space-md);
+        box-shadow: var(--shadow);
+    }
+
+    .paciente-card-header {
+        margin-bottom: var(--space-sm);
+    }
+
+    .patient-info h4 {
+        margin-bottom: 8px;
+        color: var(--primary);
+    }
+
+    .patient-meta {
+        display: flex;
+        gap: var(--space-xs);
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .contact-info {
+        margin-bottom: var(--space-sm);
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        margin-bottom: var(--space-xs);
+        font-size: 0.9rem;
+    }
+
+    .contact-item i {
+        color: var(--text-muted);
+        width: 16px;
+    }
+
+    .cadastro-info {
+        margin-top: var(--space-sm);
+    }
+
+    .paciente-card-actions {
+        display: flex;
+        gap: var(--space-xs);
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .paciente-card-actions .btn {
+        flex: 1;
+        text-align: center;
+        font-size: 0.8rem;
+    }
+
+    /* Estado Vazio */
+    .empty-state {
+        padding: var(--space-xl);
+        background: var(--background-alt);
+        border-radius: var(--radius);
+        border: 2px dashed var(--border-light);
+    }
+
+    .empty-icon {
+        margin-bottom: var(--space-md);
+    }
+
+    .empty-state h4 {
+        color: var(--text-primary);
+        margin-bottom: var(--space-sm);
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .desktop-table {
+            display: none;
+        }
+
+        .mobile-cards {
+            display: flex;
+        }
+
+        .paciente-card-actions {
+            flex-direction: column;
+        }
+
+        .paciente-card-actions .btn {
+            flex: none;
+        }
+    }
 
     @media (max-width: 480px) {
         .d-flex.justify-content-between {
@@ -243,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', filterPacientes);
     searchButton.addEventListener('click', filterPacientes);
 
-    // Exclusão com confirm nativo (SEM MODAL)
+    // Exclusão com confirm simples
     const deleteButtons = document.querySelectorAll('.excluir-paciente');
     
     deleteButtons.forEach(button => {
@@ -252,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const pacienteId = this.getAttribute('data-paciente-id');
             const nome = this.getAttribute('data-paciente-nome');
             
-            if (confirm(`Tem certeza que deseja excluir o paciente "${nome}"?\n\nEsta ação não pode ser desfeita.`)) {
+            if (confirm(`Tem certeza que deseja excluir o paciente "${nome}"? Esta ação não pode ser desfeita.`)) {
                 fetch(`/pacientes/excluir/${pacienteId}/`, {
                     method: 'POST',
                     headers: {
