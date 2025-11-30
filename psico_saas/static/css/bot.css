@@ -1,0 +1,258 @@
+/* Botão de Ajuda Flutuante */
+.help-bot {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.help-bot-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.help-bot-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.help-bot-btn:active {
+    transform: scale(0.95);
+}
+
+/* Modal do Bot - CORRIGIDO para não abrir automaticamente */
+.help-bot-modal .modal-dialog {
+    max-width: 400px;
+    margin: 0;
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+}
+
+.help-bot-modal .modal-content {
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border: none;
+    display: none; /* Impede que apareça automaticamente */
+}
+
+.help-bot-modal.show .modal-content {
+    display: block; /* Só mostra quando tem a classe show */
+}
+
+.help-bot-header {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border: none;
+    padding: 1rem 1.25rem;
+}
+
+.help-bot-header .modal-title {
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.help-bot-header .btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+.help-bot-header .btn-close:hover {
+    opacity: 1;
+}
+
+.help-bot-body {
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Mensagens do Chat */
+.chat-messages {
+    padding: 15px;
+    min-height: 300px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--background);
+}
+
+.message {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.message.bot {
+    justify-content: flex-start;
+}
+
+.message.user {
+    justify-content: flex-end;
+}
+
+.message-content {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.message.bot .message-content {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-bottom-left-radius: 5px;
+    border: 1px solid var(--border-light);
+}
+
+.message.user .message-content {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+    text-align: right;
+}
+
+/* Input do Chat */
+.chat-input-container {
+    border-top: 1px solid var(--border-light);
+    padding: 15px;
+    background: var(--surface);
+    border-radius: 0 0 15px 15px;
+}
+
+.chat-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input {
+    flex: 1;
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 10px 15px;
+    outline: none;
+    font-size: 0.9rem;
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+.chat-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
+}
+
+.send-btn {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.send-btn:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--accent-dark));
+    transform: scale(1.05);
+}
+
+.send-btn:disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.quick-action-btn {
+    background: var(--background-alt);
+    border: 1px solid var(--border-light);
+    border-radius: 15px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Typing Indicator */
+.typing-indicator {
+    display: none;
+    padding: 10px 15px;
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    background: var(--background);
+}
+
+.typing-indicator.show {
+    display: block;
+}
+
+/* Ícone do robô mais bonito */
+.bi-robot::before {
+    content: "🤖"; /* Substitui o ícone do robô por emoji mais bonito */
+}
+
+/* Responsividade */
+@media (max-width: 576px) {
+    .help-bot {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .help-bot-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .help-bot-modal .modal-dialog {
+        bottom: 75px;
+        right: 15px;
+        left: 15px;
+        max-width: none;
+    }
+    
+    .message-content {
+        max-width: 90%;
+    }
+}

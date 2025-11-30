@@ -1,3 +1,6 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/bot.css' %}">
+
 <footer class="footer">
     <div class="container">
         <div class="footer-content">
@@ -10,7 +13,7 @@
                     Seu assistente terapêutico inteligente para um cuidado mais humano e eficiente.
                 </p>
             </div>
-            
+
             <div class="footer-section">
                 <h5>Recursos</h5>
                 <ul class="footer-links">
@@ -20,20 +23,18 @@
                     <li><a href="{% url 'listar_tarefas' %}">Exercícios</a></li>
                 </ul>
             </div>
-            
+
             <div class="footer-section">
                 <h5>Suporte</h5>
                 <ul class="footer-links">
-                    <li><a href="#">Ajuda</a></li>
-                    <li><a href="#">Contato</a></li>
-                    <li><a href="#">Privacidade</a></li>
+                    <li><a href="malto:suporte@psicoassist.codertec.com.br">Contato</a></li>
                 </ul>
             </div>
         </div>
-        
+
         <div class="footer-bottom">
             <p>&copy; 2024 Psico Assist. Desenvolvido com 💚 para psicólogos.</p>
         </div>
     </div>
 </footer>
-
+<script src="{% static 'js/bot.js' %}"></script>

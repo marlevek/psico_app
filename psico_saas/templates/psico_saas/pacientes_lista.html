@@ -100,9 +100,11 @@
                                             class="btn btn-outline-secondary" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <button class="btn btn-outline-danger excluir-paciente"
+                                        <button class="btn btn-outline-danger btn-excluir-paciente"
                                             data-paciente-id="{{ paciente.id }}"
-                                            data-paciente-nome="{{ paciente.nome_completo }}" title="Excluir">
+                                            data-paciente-nome="{{ paciente.nome_completo }}" 
+                                            data-bs-toggle="modal" data-bs-target="#modalExcluirPaciente"
+                                            title="Excluir">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -151,9 +153,10 @@
                                         <hr class="dropdown-divider">
                                     </li>
                                     <li>
-                                        <button class="dropdown-item text-danger excluir-paciente"
+                                        <button class="dropdown-item text-danger btn-excluir-paciente"
                                             data-paciente-id="{{ paciente.id }}"
-                                            data-paciente-nome="{{ paciente.nome_completo }}">
+                                            data-paciente-nome="{{ paciente.nome_completo }}"
+                                            data-bs-toggle="modal" data-bs-target="#modalExcluirPaciente">
                                             <i class="bi bi-trash me-2"></i>Excluir
                                         </button>
                                     </li>
@@ -213,6 +216,29 @@
                 </a>
             </div>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Exclusão para Pacientes Lista -->
+<div class="modal fade" id="modalExcluirPaciente" tabindex="-1" aria-labelledby="modalExcluirPacienteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalExcluirPacienteLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o paciente <strong id="nomePacienteExcluir"></strong>?</p>
+                <p class="text-danger"><small>Esta ação não pode ser desfeita.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formExcluirPaciente" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Excluir Paciente</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -369,36 +395,49 @@
         searchInput.addEventListener('input', filterPacientes);
         searchButton.addEventListener('click', filterPacientes);
 
-        // Exclusão com confirmação
-        const deleteButtons = document.querySelectorAll('.excluir-paciente');
-
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function (e) {
-                e.preventDefault();
+        // Configuração do modal de exclusão
+        const modalExcluir = document.getElementById('modalExcluirPaciente');
+        const nomePacienteExcluir = document.getElementById('nomePacienteExcluir');
+        const formExcluirPaciente = document.getElementById('formExcluirPaciente');
+        
+        // Event listener para todos os botões de exclusão
+        document.querySelectorAll('.btn-excluir-paciente').forEach(button => {
+            button.addEventListener('click', function(e) {
                 const pacienteId = this.getAttribute('data-paciente-id');
                 const nome = this.getAttribute('data-paciente-nome');
+                
+                // Atualiza o modal com os dados do paciente
+                nomePacienteExcluir.textContent = nome;
+                formExcluirPaciente.action = `/pacientes/excluir/${pacienteId}/`;
+            });
+        });
 
-                if (confirm(`Tem certeza que deseja excluir o paciente "${nome}"?\n\nEsta ação não pode ser desfeita.`)) {
-                    fetch(`/pacientes/excluir/${pacienteId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': '{{ csrf_token }}',
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            } else {
-                                alert('Erro ao excluir paciente: ' + (data.error || 'Erro desconhecido'));
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Erro:', error);
-                            alert('Erro ao excluir paciente. Tente novamente.');
-                        });
+        // Submissão do formulário de exclusão
+        formExcluirPaciente.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Fecha o modal
+                    const modal = bootstrap.Modal.getInstance(modalExcluir);
+                    modal.hide();
+                    // Recarrega a página
+                    location.reload();
+                } else {
+                    alert('Erro ao excluir paciente: ' + (data.error || 'Erro desconhecido'));
                 }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao excluir paciente. Tente novamente.');
             });
         });
 
