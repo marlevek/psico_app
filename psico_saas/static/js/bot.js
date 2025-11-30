@@ -2,6 +2,7 @@ class HelpBot {
     constructor() {
         this.isOpen = false;
         this.messages = [];
+        this.hasShownWelcome = false; // Nova flag para controlar a saudação
         this.initializeBot();
         this.setupEventListeners();
     }
@@ -15,19 +16,21 @@ class HelpBot {
                 <i class="bi bi-question-lg"></i>
             </button>
 
-            <div class="modal fade help-bot-modal" id="helpBotModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
+            <div class="modal fade help-bot-modal" id="helpBotModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header help-bot-header">
                             <h5 class="modal-title">
                                 <i class="bi bi-robot me-2"></i>Assistente Psico
                             </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
                         </div>
                         <div class="modal-body help-bot-body">
                             <div class="chat-messages" id="chatMessages"></div>
                             <div class="typing-indicator" id="typingIndicator">
-                                <i class="bi bi-three-dots"></i> Digitando...
+                                <i class="bi bi-three-dots"></i> Assistente está digitando...
                             </div>
                             <div class="chat-input-container">
                                 <div class="quick-actions" id="quickActions">
@@ -59,16 +62,16 @@ class HelpBot {
         this.quickActions = document.getElementById('quickActions');
         this.helpBotButton = document.getElementById('helpBotButton');
         this.modalElement = document.getElementById('helpBotModal');
-        this.modal = new bootstrap.Modal(this.modalElement);
+        this.modal = new bootstrap.Modal(this.modalElement, {
+            backdrop: true, // Permite fechar clicando fora
+            keyboard: true  // Permite fechar com ESC
+        });
     }
 
     setupEventListeners() {
         // Abrir modal quando clicar no botão
         this.helpBotButton.addEventListener('click', () => {
             this.modal.show();
-            if (this.messages.length === 0) {
-                this.showWelcomeMessage();
-            }
         });
 
         // Enviar mensagem com Enter
@@ -94,6 +97,13 @@ class HelpBot {
         // Quando o modal abre
         this.modalElement.addEventListener('shown.bs.modal', () => {
             this.isOpen = true;
+            
+            // Mostrar saudação apenas na primeira vez
+            if (!this.hasShownWelcome) {
+                this.showWelcomeMessage();
+                this.hasShownWelcome = true;
+            }
+            
             this.chatInput.focus();
             this.scrollToBottom();
         });
@@ -101,6 +111,15 @@ class HelpBot {
         // Quando o modal fecha
         this.modalElement.addEventListener('hidden.bs.modal', () => {
             this.isOpen = false;
+        });
+
+        // Prevenir scroll quando o modal abrir
+        this.modalElement.addEventListener('show.bs.modal', () => {
+            document.body.style.overflow = 'hidden';
+        });
+
+        this.modalElement.addEventListener('hidden.bs.modal', () => {
+            document.body.style.overflow = '';
         });
     }
 
@@ -128,12 +147,21 @@ class HelpBot {
             minute: '2-digit' 
         });
 
-        messageElement.innerHTML = `
-            <div class="message-content">
-                ${message.text}
-                <div class="message-time">${time}</div>
-            </div>
-        `;
+        if (message.html) {
+            messageElement.innerHTML = `
+                <div class="message-content">
+                    ${message.html}
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+        } else {
+            messageElement.innerHTML = `
+                <div class="message-content">
+                    ${message.text.replace(/\n/g, '<br>')}
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+        }
 
         this.chatMessages.appendChild(messageElement);
     }
@@ -158,7 +186,7 @@ class HelpBot {
         setTimeout(() => {
             this.hideTypingIndicator();
             this.generateBotResponse(text);
-        }, 1000 + Math.random() * 1000);
+        }, 1500 + Math.random() * 1000);
     }
 
     showTypingIndicator() {
@@ -173,30 +201,34 @@ class HelpBot {
     generateBotResponse(userMessage) {
         const lowerMessage = userMessage.toLowerCase();
         let response = '';
+        let html = '';
 
         // Respostas baseadas em palavras-chave
         if (lowerMessage.includes('olá') || lowerMessage.includes('oi') || lowerMessage.includes('ola')) {
             response = "Olá! É um prazer ajudá-lo. Em que posso ser útil?";
         } else if (lowerMessage.includes('cadastrar') || lowerMessage.includes('novo') || lowerMessage.includes('criar')) {
-            response = "Para cadastrar um novo paciente, clique em 'Novo Paciente' na página de lista de pacientes. Preencha os dados obrigatórios como nome, data de nascimento e telefone, então salve.";
+            response = "Para cadastrar um novo paciente:\n\n1. Clique em 'Cadastrar Paciente' no menu superior\n2. Preencha os dados obrigatórios (nome, data de nascimento, telefone)\n3. Adicione outras informações se desejar\n4. Clique em 'Salvar' para finalizar";
         } else if (lowerMessage.includes('editar') || lowerMessage.includes('alterar') || lowerMessage.includes('modificar')) {
-            response = "Para editar um paciente, clique no ícone de lápis (✏️) ao lado do paciente na lista. Faça as alterações necessárias e salve.";
+            response = "Para editar um paciente:\n\n1. Vá para a lista de pacientes\n2. Clique no ícone de lápis (✏️) ao lado do paciente\n3. Faça as alterações necessárias\n4. Clique em 'Salvar' para atualizar";
         } else if (lowerMessage.includes('excluir') || lowerMessage.includes('remover') || lowerMessage.includes('deletar')) {
-            response = "Para excluir um paciente, clique no ícone de lixeira (🗑️) ao lado do paciente. Confirme a exclusão no modal que aparecer. ⚠️ Esta ação não pode ser desfeita.";
+            response = "Para excluir um paciente:\n\n1. Vá para a lista de pacientes\n2. Clique no ícone de lixeira (🗑️) ao lado do paciente\n3. Confirme a exclusão no modal\n\n⚠️ Atenção: Esta ação não pode ser desfeita!";
         } else if (lowerMessage.includes('buscar') || lowerMessage.includes('encontrar') || lowerMessage.includes('procurar')) {
-            response = "Use a barra de busca na parte superior da lista de pacientes para encontrar pacientes por nome, telefone ou e-mail.";
+            response = "Para buscar pacientes:\n\nUse a barra de busca na parte superior da lista de pacientes. Você pode buscar por:\n• Nome do paciente\n• Telefone\n• E-mail\n• Qualquer informação do cadastro";
         } else if (lowerMessage.includes('agenda') || lowerMessage.includes('sessão') || lowerMessage.includes('consulta')) {
-            response = "Em breve teremos a funcionalidade de agenda para agendar sessões com seus pacientes. Fique atento às atualizações!";
+            response = "Funcionalidade de agenda em breve!\n\nEstamos desenvolvendo um sistema completo de agendamento de sessões. Em breve você poderá:\n• Agendar consultas\n• Gerenciar horários\n• Receber lembretes\n• E muito mais!\n\nFique atento às atualizações!";
         } else if (lowerMessage.includes('problema') || lowerMessage.includes('erro') || lowerMessage.includes('bug')) {
-            response = "Se estiver enfrentando problemas técnicos, entre em contato com nosso suporte: suporte@psicoassist.com";
+            html = "Lamento ouvir que está com problemas. Entre em contato com nosso suporte:<br><br>📧 Email: <a href='mailto:suporte@psicoassist.codertec.com.br' style='color: var(--primary); text-decoration: none; border-bottom: 1px solid var(--primary);'>suporte@psicoassist.codertec.com.br</a><br>📱 WhatsApp: <a href='https://wa.me/5541996131762' target='_blank' style='color: var(--primary); text-decoration: none; border-bottom: 1px solid var(--primary);'>(41) 99613-1762</a><br><br>Nossa equipe terá prazer em ajudá-lo!";
+        } else if (lowerMessage.includes('outras dúvidas') || lowerMessage.includes('outras duvidas') || lowerMessage.includes('mais ajuda')) {
+            html = "Claro! Para outras dúvidas ou suporte técnico, entre em contato conosco:<br><br>📧 Email: <a href='mailto:suporte@psicoassist.codertec.com.br' style='color: var(--primary); text-decoration: none; border-bottom: 1px solid var(--primary);'>suporte@psicoassist.codertec.com.br</a><br>📱 WhatsApp: <a href='https://wa.me/5541996131762' target='_blank' style='color: var(--primary); text-decoration: none; border-bottom: 1px solid var(--primary);'>(41) 99613-1762</a><br>💻 Site: <a href='https://www.psicoassist.codertec.com.br' target='_blank' style='color: var(--primary); text-decoration: none; border-bottom: 1px solid var(--primary);'>www.psicoassist.codertec.com.br</a><br><br>Horário de atendimento:<br>Segunda a Sexta: 8h às 18h<br>Sábado: 8h às 12h";
         } else if (lowerMessage.includes('obrigado') || lowerMessage.includes('obrigada') || lowerMessage.includes('valeu')) {
-            response = "De nada! Estou aqui para ajudar. Se tiver mais alguma dúvida, é só perguntar! 😊";
+            response = "De nada! Fico feliz em ajudar. 😊\n\nSe tiver mais alguma dúvida, é só perguntar!";
         } else {
-            response = "Desculpe, não entendi completamente. Você pode reformular sua pergunta ou usar uma das opções rápidas abaixo?";
+            response = "Desculpe, não entendi completamente sua pergunta. 😅\n\nVocê pode:\n• Reformular sua pergunta\n• Usar uma das opções rápidas abaixo\n• Entrar em contato com nosso suporte:\n  📧 suporte@psicoassist.codertec.com.br\n  📱 (41) 99613-1762";
         }
 
         const botMessage = {
             text: response,
+            html: html,
             type: "bot",
             time: new Date()
         };
@@ -217,7 +249,7 @@ class HelpBot {
                 question = 'Como funciona a agenda de sessões?';
                 break;
             case 'duvidas':
-                question = 'Preciso de ajuda com outras funcionalidades';
+                question = 'Outras dúvidas';
                 break;
         }
 
@@ -234,12 +266,14 @@ class HelpBot {
         setTimeout(() => {
             this.hideTypingIndicator();
             this.generateBotResponse(question);
-        }, 800);
+        }, 1000);
     }
 
     scrollToBottom() {
         setTimeout(() => {
-            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            if (this.chatMessages) {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
         }, 100);
     }
 }
