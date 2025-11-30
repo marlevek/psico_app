@@ -2,7 +2,7 @@ class HelpBot {
     constructor() {
         this.isOpen = false;
         this.messages = [];
-        this.hasShownWelcome = false; // Nova flag para controlar a saudação
+        this.hasShownWelcome = false;
         this.initializeBot();
         this.setupEventListeners();
     }
@@ -16,14 +16,14 @@ class HelpBot {
                 <i class="bi bi-question-lg"></i>
             </button>
 
-            <div class="modal fade help-bot-modal" id="helpBotModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">
+            <div class="help-bot-modal" id="helpBotModal">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header help-bot-header">
                             <h5 class="modal-title">
                                 <i class="bi bi-robot me-2"></i>Assistente Psico
                             </h5>
-                            <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close">
+                            <button type="button" class="btn-close-custom" id="closeBotButton">
                                 <i class="bi bi-x-lg"></i>
                             </button>
                         </div>
@@ -61,17 +61,26 @@ class HelpBot {
         this.typingIndicator = document.getElementById('typingIndicator');
         this.quickActions = document.getElementById('quickActions');
         this.helpBotButton = document.getElementById('helpBotButton');
+        this.closeBotButton = document.getElementById('closeBotButton');
         this.modalElement = document.getElementById('helpBotModal');
-        this.modal = new bootstrap.Modal(this.modalElement, {
-            backdrop: true, // Permite fechar clicando fora
-            keyboard: true  // Permite fechar com ESC
-        });
     }
 
     setupEventListeners() {
         // Abrir modal quando clicar no botão
         this.helpBotButton.addEventListener('click', () => {
-            this.modal.show();
+            this.openModal();
+        });
+
+        // Fechar modal quando clicar no botão de fechar
+        this.closeBotButton.addEventListener('click', () => {
+            this.closeModal();
+        });
+
+        // Fechar modal quando clicar fora (no backdrop)
+        this.modalElement.addEventListener('click', (e) => {
+            if (e.target === this.modalElement) {
+                this.closeModal();
+            }
         });
 
         // Enviar mensagem com Enter
@@ -94,33 +103,35 @@ class HelpBot {
             }
         });
 
-        // Quando o modal abre
-        this.modalElement.addEventListener('shown.bs.modal', () => {
-            this.isOpen = true;
-            
-            // Mostrar saudação apenas na primeira vez
-            if (!this.hasShownWelcome) {
+        // Fechar modal com ESC
+        document.addEventListener('keydown', (e) => {
+            if (this.isOpen && e.key === 'Escape') {
+                this.closeModal();
+            }
+        });
+    }
+
+    openModal() {
+        this.modalElement.classList.add('show');
+        this.isOpen = true;
+        
+
+        // Mostrar saudação apenas na primeira vez
+        if (!this.hasShownWelcome && this.messages.length === 0) {
+            setTimeout(() => {
                 this.showWelcomeMessage();
                 this.hasShownWelcome = true;
-            }
-            
-            this.chatInput.focus();
-            this.scrollToBottom();
-        });
+            }, 300);
+        }
 
-        // Quando o modal fecha
-        this.modalElement.addEventListener('hidden.bs.modal', () => {
-            this.isOpen = false;
-        });
+        this.chatInput.focus();
+        this.scrollToBottom();
+    }
 
-        // Prevenir scroll quando o modal abrir
-        this.modalElement.addEventListener('show.bs.modal', () => {
-            document.body.style.overflow = 'hidden';
-        });
-
-        this.modalElement.addEventListener('hidden.bs.modal', () => {
-            document.body.style.overflow = '';
-        });
+    closeModal() {
+        this.modalElement.classList.remove('show');
+        this.isOpen = false;
+       
     }
 
     showWelcomeMessage() {

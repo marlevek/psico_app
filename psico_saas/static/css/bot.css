@@ -24,35 +24,52 @@
 
 .help-bot-btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 
 .help-bot-btn:active {
     transform: scale(0.95);
 }
 
-/* Modal do Bot - CORRIGIDO para não abrir automaticamente */
-.help-bot-modal .modal-dialog {
-    max-width: 400px;
-    margin: 0;
+/* Modal do Bot - AGORA COMO BALÃO PRÓXIMO AO BOTÃO */
+.help-bot-modal {
+    display: none !important;
     position: fixed;
-    bottom: 90px;
+    bottom: 90px; /* Posiciona acima do botão */
     right: 20px;
+    width: 400px;
+    max-width: calc(100vw - 40px);
+    height: 600px;
     max-height: 80vh;
+    z-index: 1050;
+    background: transparent;
+}
+
+.help-bot-modal.show {
+    display: block !important;
+}
+
+.help-bot-modal .modal-dialog {
+    margin: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .help-bot-modal .modal-content {
     border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     border: none;
-    height: 600px;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    background: var(--surface);
+    /* REMOVER o fundo escuro do modal */
+    background-color: var(--surface);
 }
 
-.help-bot-modal.show .modal-content {
-    display: block;
-    /* Só mostra quando tem a classe show */
+/* REMOVER completamente o backdrop/overlay */
+.help-bot-modal::before {
+    display: none;
 }
 
 .help-bot-header {
@@ -75,13 +92,25 @@
     font-size: 1.1rem;
 }
 
-.help-bot-header .btn-close {
-    filter: invert(1);
-    opacity: 0.8;
+.btn-close-custom {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    padding: 0;
+    transition: all 0.3s ease;
 }
 
-.help-bot-header .btn-close:hover {
-    opacity: 1;
+.btn-close-custom:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
 }
 
 .help-bot-body {
@@ -92,32 +121,6 @@
     overflow: hidden;
 }
 
-/* Botão Fechar Customizado */
-.btn-close-custom {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    opacity: 0.8;
-    transition: all 0.3s ease;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    padding: 0;
-}
-
-.btn-close-custom:hover {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
-}
-
-
-/* Mensagens do Chat */
 .chat-messages {
     padding: 15px;
     flex: 1;
@@ -125,6 +128,7 @@
     background: var(--background);
     min-height: 300px;
     max-height: 400px;
+    height: auto;
 }
 
 .message {
@@ -142,8 +146,8 @@
 }
 
 .message-content {
-    max-width: 80%;
-    padding: 10px 15px;
+    max-width: 85%;
+    padding: 12px 16px;
     border-radius: 18px;
     font-size: 0.9rem;
     line-height: 1.4;
@@ -155,22 +159,45 @@
     color: var(--text-primary);
     border-bottom-left-radius: 5px;
     border: 1px solid var(--border-light);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .message.user .message-content {
     background: linear-gradient(135deg, var(--primary), var(--accent));
     color: white;
     border-bottom-right-radius: 5px;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
 }
 
 .message-time {
     font-size: 0.7rem;
-    color: var(--text-muted);
-    margin-top: 5px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+.message.bot .message-time {
+    text-align: left;
+}
+
+.message.user .message-time {
     text-align: right;
 }
 
-/* Input do Chat */
+.message.bot .message-content a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid var(--primary);
+    transition: all 0.3s ease;
+    padding: 0 1px;
+}
+
+.message.bot .message-content a:hover {
+    color: var(--primary-dark);
+    border-bottom-color: var(--primary-dark);
+    background: rgba(5, 150, 105, 0.1);
+}
+
 .chat-input-container {
     border-top: 1px solid var(--border-light);
     padding: 15px;
@@ -181,17 +208,19 @@
 .chat-input-group {
     display: flex;
     gap: 10px;
+    align-items: center;
 }
 
 .chat-input {
     flex: 1;
     border: 1px solid var(--border-light);
     border-radius: 20px;
-    padding: 10px 15px;
+    padding: 12px 16px;
     outline: none;
     font-size: 0.9rem;
     background: var(--background);
     color: var(--text-primary);
+    transition: all 0.3s ease;
 }
 
 .chat-input:focus {
@@ -204,13 +233,14 @@
     color: white;
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .send-btn:hover {
@@ -224,12 +254,11 @@
     transform: none;
 }
 
-/* Quick Actions */
 .quick-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .quick-action-btn {
@@ -241,6 +270,7 @@
     color: var(--text-primary);
     cursor: pointer;
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .quick-action-btn:hover {
@@ -249,7 +279,6 @@
     border-color: var(--primary);
 }
 
-/* Typing Indicator */
 .typing-indicator {
     display: none;
     padding: 10px 15px;
@@ -263,33 +292,47 @@
     display: block;
 }
 
-/* Ícone do robô mais bonito */
-.bi-robot::before {
-    content: "🤖";
-    /* Substitui o ícone do robô por emoji mais bonito */
-}
-
 /* Responsividade */
 @media (max-width: 576px) {
     .help-bot {
         bottom: 15px;
         right: 15px;
     }
-
+    
     .help-bot-btn {
         width: 50px;
         height: 50px;
         font-size: 20px;
     }
-
-    .help-bot-modal .modal-dialog {
-        bottom: 75px;
+    
+    .help-bot-modal {
+        bottom: 80px;
         right: 15px;
         left: 15px;
+        width: auto;
         max-width: none;
     }
-
+    
     .message-content {
         max-width: 90%;
     }
+    
+    .quick-actions {
+        justify-content: center;
+    }
+    
+    .quick-action-btn {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+    }
+}
+
+/* REMOVER completamente qualquer estilo de backdrop */
+.modal-backdrop {
+    display: none !important;
+}
+
+body.modal-open {
+    overflow: auto !important;
+    padding-right: 0 !important;
 }
