@@ -7,7 +7,7 @@ urlpatterns = [
     
     # Planos de Tratamento
     path('planos/', views.listar_planos_view, name='listar_planos'),
-    path('planos/novo/', views.plano_form_view, name='plano_form'),  # ⬅️ ESTA ESTAVA FALTANDO
+    path('planos/novo/', views.plano_form_view, name='plano_form'),  
     path('planos/editar/<int:pk>/', views.plano_form_view, name='editar_plano'),
     path('planos/excluir/<int:pk>/', views.excluir_plano, name='excluir_plano'),
     path('planos/ver/<int:pk>/', views.ver_plano_view, name='ver_plano'),
@@ -25,6 +25,13 @@ urlpatterns = [
     path('conteudos-educacionais/novo/', views.conteudo_educacional_form_view, name='conteudo_educacional_form'),
     path('conteudos-educacionais/ver/<int:pk>/', views.ver_conteudo_educacional_view, name='ver_conteudo_educacional'),
     path('conteudos-educacionais/salvar/<int:pk>/', views.salvar_conteudo_educacional_view, name='salvar_conteudo_educacional'),
+    
+    # URLs PARA PACIENTES 
+    path('pacientes/', views.listar_pacientes_view, name='listar_pacientes'),
+    path('pacientes/novo/', views.paciente_form_view, name='paciente_form'),
+    path('pacientes/editar/<int:pk>/', views.paciente_form_view, name='editar_paciente'),
+    path('pacientes/ver/<int:pk>/', views.ver_paciente_view, name='ver_paciente'),
+    path('pacientes/excluir/<int:pk>/', views.excluir_paciente_view, name='excluir_paciente'),
     
     # API
     path('api/planos/', views.PlanoTratamentoViewSet.as_view({'get': 'list', 'post': 'create'}), name='api_planos'),

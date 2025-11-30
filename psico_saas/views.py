@@ -249,7 +249,7 @@ def documentacao_form_view(request):
 
 
 # ------------------------------------------------------------------
-# 7. VIEW DO FORMULÁRIO DE EXERCÍCIOS/TAREFAS
+# 8. VIEW DO FORMULÁRIO DE EXERCÍCIOS/TAREFAS
 # ------------------------------------------------------------------
 @login_required
 def tarefas_form_view(request):
@@ -329,7 +329,7 @@ def tarefas_form_view(request):
 
 
 # ------------------------------------------------------------------
-# 8. VIEW DE LISTAGEM DE TAREFAS/EXERCÍCIOS
+# 9. VIEW DE LISTAGEM DE TAREFAS/EXERCÍCIOS
 # ------------------------------------------------------------------
 @login_required
 def listar_tarefas_view(request):
@@ -343,7 +343,7 @@ def listar_tarefas_view(request):
 
 
 # ------------------------------------------------------------------
-# 9. VIEW DE DETALHE E IMPRESSÃO DE TAREFA
+# 10. VIEW DE DETALHE E IMPRESSÃO DE TAREFA
 # ------------------------------------------------------------------
 @login_required
 def tarefas_detail_view(request, pk):
@@ -356,7 +356,7 @@ def tarefas_detail_view(request, pk):
 
 
 # ------------------------------------------------------------------
-# VIEWS PARA CONTEÚDO EDUCACIONAL
+# 11. VIEWS PARA CONTEÚDO EDUCACIONAL
 # ------------------------------------------------------------------
 @login_required
 def conteudo_educacional_form_view(request):
@@ -512,3 +512,131 @@ def salvar_conteudo_educacional_view(request, pk):
                 return JsonResponse({'success': False, 'error': error_msg})
     
     return JsonResponse({'success': False, 'error': 'Método não permitido'})
+
+
+# ------------------------------------------------------------------
+# 12. VIEWS PARA PACIENTES
+# ------------------------------------------------------------------
+@login_required
+def listar_pacientes_view(request):
+    """Lista todos os pacientes do usuário"""
+    pacientes = Paciente.objects.filter(usuario=request.user).order_by('nome_completo')
+    
+    context = {
+        'pacientes': pacientes
+    }
+    return render(request, 'psico_saas/pacientes_lista.html', context)
+
+@login_required
+def paciente_form_view(request, pk=None):
+    """Formulário para criar/editar pacientes"""
+    paciente_instance = None
+    error_message = None
+    success_message = None
+    
+    # Carregar paciente existente se for edição
+    if pk:
+        paciente_instance = get_object_or_404(Paciente, pk=pk, usuario=request.user)
+    
+    if request.method == 'POST':
+        # Criar uma cópia mutável do POST data
+        data = request.POST.copy()
+        
+        # Processar dados do formulário
+        try:
+            if paciente_instance:
+                # Modo edição
+                paciente_instance.nome_completo = data.get('nome_completo', '')
+                paciente_instance.data_nascimento = data.get('data_nascimento') or None
+                paciente_instance.sexo = data.get('sexo', '')
+                paciente_instance.email = data.get('email', '')
+                paciente_instance.telefone = data.get('telefone', '')
+                paciente_instance.contato_emergencia = data.get('contato_emergencia', '')
+                paciente_instance.observacoes = data.get('observacoes', '')
+                
+                # Endereço
+                paciente_instance.cep = data.get('cep', '')
+                paciente_instance.logradouro = data.get('logradouro', '')
+                paciente_instance.numero = data.get('numero', '')
+                paciente_instance.complemento = data.get('complemento', '')
+                paciente_instance.bairro = data.get('bairro', '')
+                paciente_instance.cidade = data.get('cidade', '')
+                paciente_instance.estado = data.get('estado', '')
+                
+                paciente_instance.save()
+                success_message = "Paciente atualizado com sucesso!"
+                
+            else:
+                # Modo criação
+                paciente = Paciente.objects.create(
+                    usuario=request.user,
+                    nome_completo=data.get('nome_completo', ''),
+                    data_nascimento=data.get('data_nascimento') or None,
+                    sexo=data.get('sexo', ''),
+                    email=data.get('email', ''),
+                    telefone=data.get('telefone', ''),
+                    contato_emergencia=data.get('contato_emergencia', ''),
+                    observacoes=data.get('observacoes', ''),
+                    cep=data.get('cep', ''),
+                    logradouro=data.get('logradouro', ''),
+                    numero=data.get('numero', ''),
+                    complemento=data.get('complemento', ''),
+                    bairro=data.get('bairro', ''),
+                    cidade=data.get('cidade', ''),
+                    estado=data.get('estado', ''),
+                )
+                success_message = "Paciente criado com sucesso!"
+                
+            return redirect('listar_pacientes')
+            
+        except Exception as e:
+            error_message = f"Erro ao salvar paciente: {str(e)}"
+    
+    context = {
+        'paciente': paciente_instance,
+        'error_message': error_message,
+        'success_message': success_message,
+        'is_editing': bool(pk),
+        'sexo_choices': Paciente.SEXO_CHOICES,
+    }
+    
+    return render(request, 'psico_saas/paciente_form.html', context)
+
+@login_required
+def ver_paciente_view(request, pk):
+    """Visualiza detalhes de um paciente"""
+    paciente = get_object_or_404(Paciente, pk=pk, usuario=request.user)
+    
+    # Buscar planos associados
+    planos = PlanoTratamento.objects.filter(paciente=paciente).order_by('-data_criacao')
+    
+    context = {
+        'paciente': paciente,
+        'planos': planos
+    }
+    
+    return render(request, 'psico_saas/ver_paciente.html', context)
+
+@login_required
+@require_POST
+def excluir_paciente_view(request, pk):
+    """Exclui um paciente"""
+    paciente = get_object_or_404(Paciente, pk=pk, usuario=request.user)
+    
+    # Verificar se existem planos associados
+    planos_associados = PlanoTratamento.objects.filter(paciente=paciente).exists()
+    
+    if planos_associados:
+        return JsonResponse({
+            'success': False, 
+            'error': 'Não é possível excluir este paciente pois existem planos de tratamento associados. Exclua os planos primeiro.'
+        })
+    
+    try:
+        paciente.delete()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro ao excluir paciente: {str(e)}'
+        })

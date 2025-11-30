@@ -4,6 +4,7 @@
 {% block title %}Planos de Tratamento - Psico Assist{% endblock %}
 
 {% block content %}
+
 <div class="card">
     <div class="card-header">
         <div class="header-content">
@@ -131,11 +132,11 @@
                             <i class="bi bi-pencil"></i>
                             Editar
                         </a>
-                      
-                                    <a href="{% url 'ver_plano' pk=plano.pk %}" class="btn btn-sm btn-outline">
-                                        <i class="bi bi-eye"></i>
-                                        Ver
-                                    </a>
+
+                        <a href="{% url 'ver_plano' pk=plano.pk %}" class="btn btn-sm btn-outline">
+                            <i class="bi bi-eye"></i>
+                            Ver
+                        </a>
                     </div>
                 </div>
                 {% endfor %}
@@ -157,19 +158,16 @@
 </div>
 
 <style>
-    /* Header com título e descrição CENTRALIZADOS - Versão Agressiva */
+     /* Header com título e descrição CENTRALIZADOS - Versão Agressiva */
+    .card {
+        margin-top: 4em;
+    }
     .card-header {
         text-align: center !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-    }
 
-    .header-content {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        width: 100% !important;
     }
 
     .title-section {
@@ -435,4 +433,6 @@
         }
     }
 </style>
+
 {% endblock %}
+

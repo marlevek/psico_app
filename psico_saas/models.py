@@ -9,11 +9,36 @@ User = get_user_model()
 
 
 class Paciente(models.Model):
+    SEXO_CHOICES = [
+        ('M', 'Masculino'),
+        ('F', 'Feminino'),
+        ('O', 'Outros'),
+        ('N', 'Prefiro não informar'),
+    ]
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Dados pessoais
     nome_completo = models.CharField(max_length=255)
     data_nascimento = models.DateField(blank=True, null=True)
+    sexo = models.CharField(
+        max_length=1, choices=SEXO_CHOICES, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    telefone = models.CharField(max_length=20, blank=True, null=True)
     contato_emergencia = models.CharField(
         max_length=100, blank=True, null=True)
+
+    # Endereço
+    cep = models.CharField(max_length=9, blank=True,
+                           null=True, help_text="Formato: 00000-000")
+    logradouro = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Rua/Avenida")
+    numero = models.CharField(max_length=10, blank=True, null=True)
+    complemento = models.CharField(max_length=100, blank=True, null=True)
+    bairro = models.CharField(max_length=100, blank=True, null=True)
+    cidade = models.CharField(max_length=100, blank=True, null=True)
+    estado = models.CharField(max_length=50, blank=True, null=True)
+
     data_cadastro = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -34,6 +59,26 @@ class Paciente(models.Model):
                  (self.data_nascimento.month, self.data_nascimento.day))
             return idade
         return "N/D"  # Não Disponível
+
+    def endereco_completo(self):
+        """Retorna o endereço completo formatado"""
+        parts = []
+        if self.logradouro:
+            parts.append(self.logradouro)
+        if self.numero:
+            parts.append(f", {self.numero}")
+        if self.complemento:
+            parts.append(f" - {self.complemento}")
+        if self.bairro:
+            parts.append(f" - {self.bairro}")
+        if self.cidade:
+            parts.append(f" - {self.cidade}")
+        if self.estado:
+            parts.append(f"/{self.estado}")
+        if self.cep:
+            parts.append(f" - CEP: {self.cep}")
+
+        return ''.join(parts) if parts else "Endereço não informado"
 
 
 class PlanoTratamento(models.Model):
@@ -159,15 +204,16 @@ class ConteudoEducacional(models.Model):
     tipo_conteudo = models.CharField(max_length=50, choices=TIPOS_CONTEUDO)
     tema_principal = models.CharField(max_length=255)
     publico_alvo = models.CharField(max_length=100, blank=True, null=True)
-    tom_voz = models.CharField(max_length=100, default='Profissional e acolhedor')
+    tom_voz = models.CharField(
+        max_length=100, default='Profissional e acolhedor')
     palavras_chave = models.TextField(blank=True, null=True)
-    
+
     # Saída da IA
     conteudo_gerado = models.TextField(blank=True, null=True)
     sugestoes_titulos = models.TextField(blank=True, null=True)
     hashtags = models.TextField(blank=True, null=True)
     sugestoes_imagens = models.TextField(blank=True, null=True)  # NOVO CAMPO
-    
+
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
 
