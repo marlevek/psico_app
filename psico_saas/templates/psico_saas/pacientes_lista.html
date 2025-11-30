@@ -36,140 +36,165 @@
             <h3 class="section-title">Pacientes Cadastrados ({{ pacientes|length }})</h3>
 
             {% if pacientes %}
-            <!-- Tabela Desktop -->
-            <div class="table-responsive desktop-table">
-                <table class="table" id="pacientesTable">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Idade</th>
-                            <th>Telefone</th>
-                            <th>E-mail</th>
-                            <th>Contato Emergência</th>
-                            <th>Data Cadastro</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for paciente in pacientes %}
-                        <tr class="paciente-row">
-                            <td>
-                                <strong>{{ paciente.nome_completo }}</strong>
-                                {% if paciente.sexo %}
-                                <br>
-                                <small class="text-muted">Sexo: {{ paciente.get_sexo_display }}</small>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="idade-badge">
-                                    {{ paciente.get_idade }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if paciente.telefone %}
-                                {{ paciente.telefone }}
-                                {% else %}
-                                <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if paciente.email %}
-                                <a href="mailto:{{ paciente.email }}" class="email-link">
-                                    {{ paciente.email }}
-                                </a>
-                                {% else %}
-                                <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if paciente.contato_emergencia %}
-                                {{ paciente.contato_emergencia }}
-                                {% else %}
-                                <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ paciente.data_cadastro|date:"d/m/Y" }}</td>
-                            <td>
-                                <div class="actions-buttons">
-                                    <a href="{% url 'ver_paciente' paciente.id %}" class="btn btn-sm btn-outline"
-                                        title="Ver detalhes">
-                                        <i class="bi bi-eye"></i>
+            <!-- Tabela para Desktop -->
+            <div class="desktop-view">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Nome</th>
+                                <th>Idade</th>
+                                <th>Telefone</th>
+                                <th>E-mail</th>
+                                <th>Contato Emergência</th>
+                                <th>Data Cadastro</th>
+                                <th width="120">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for paciente in pacientes %}
+                            <tr class="paciente-row">
+                                <td style="min-width: 180px;">
+                                    <strong>{{ paciente.nome_completo }}</strong>
+                                    {% if paciente.sexo %}
+                                    <br>
+                                    <small class="text-muted">{{ paciente.get_sexo_display }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">
+                                        {{ paciente.get_idade }} anos
+                                    </span>
+                                </td>
+                                <td style="min-width: 120px;">
+                                    {% if paciente.telefone %}
+                                    {{ paciente.telefone }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 120px;">
+                                    {% if paciente.email %}
+                                    <a href="mailto:{{ paciente.email }}" class="text-decoration-none">
+                                        {{ paciente.email|truncatechars:20 }}
                                     </a>
-                                    <a href="{% url 'editar_paciente' paciente.id %}" class="btn btn-sm btn-outline"
-                                        title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <button class="btn btn-sm btn-outline-danger excluir-paciente"
-                                        data-paciente-id="{{ paciente.id }}"
-                                        data-paciente-nome="{{ paciente.nome_completo }}" title="Excluir">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 150px;">
+                                    {% if paciente.contato_emergencia %}
+                                    {{ paciente.contato_emergencia|truncatechars:15 }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ paciente.data_cadastro|date:"d/m/Y" }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'ver_paciente' paciente.id %}" class="btn btn-outline-primary"
+                                            title="Ver detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'editar_paciente' paciente.id %}"
+                                            class="btn btn-outline-secondary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger excluir-paciente"
+                                            data-paciente-id="{{ paciente.id }}"
+                                            data-paciente-nome="{{ paciente.nome_completo }}" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Cards Mobile -->
-            <div class="mobile-cards">
+            <!-- Cards para Mobile -->
+            <div class="mobile-view">
                 {% for paciente in pacientes %}
-                <div class="paciente-card">
-                    <div class="paciente-card-header">
-                        <div class="patient-info">
-                            <h4>{{ paciente.nome_completo }}</h4>
-                            <div class="patient-meta">
-                                <span class="idade-badge">{{ paciente.get_idade }}</span>
-                                {% if paciente.sexo %}
-                                <span class="sexo-badge">{{ paciente.get_sexo_display }}</span>
-                                {% endif %}
+                <div class="card mb-3 paciente-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">{{ paciente.nome_completo }}</h5>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="badge bg-primary">{{ paciente.get_idade }} anos</span>
+                                    {% if paciente.sexo %}
+                                    <span class="badge bg-secondary">{{ paciente.get_sexo_display }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Dropdown Bootstrap Corrigido -->
+                            <div class="dropdown paciente-dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu paciente-dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'ver_paciente' paciente.id %}">
+                                            <i class="bi bi-eye me-2"></i>Ver
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'editar_paciente' paciente.id %}">
+                                            <i class="bi bi-pencil me-2"></i>Editar
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item text-danger excluir-paciente"
+                                            data-paciente-id="{{ paciente.id }}"
+                                            data-paciente-nome="{{ paciente.nome_completo }}">
+                                            <i class="bi bi-trash me-2"></i>Excluir
+                                        </button>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="paciente-card-body">
                         <div class="contact-info">
                             {% if paciente.telefone %}
-                            <div class="contact-item">
-                                <i class="bi bi-telephone"></i>
-                                {{ paciente.telefone }}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-telephone me-3 text-muted"></i>
+                                <span>{{ paciente.telefone }}</span>
                             </div>
                             {% endif %}
 
                             {% if paciente.email %}
-                            <div class="contact-item">
-                                <i class="bi bi-envelope"></i>
-                                <a href="mailto:{{ paciente.email }}">{{ paciente.email }}</a>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-envelope me-3 text-muted"></i>
+                                <a href="mailto:{{ paciente.email }}" class="text-decoration-none text-break">
+                                    {{ paciente.email }}
+                                </a>
                             </div>
                             {% endif %}
 
                             {% if paciente.contato_emergencia %}
-                            <div class="contact-item">
-                                <i class="bi bi-exclamation-triangle"></i>
-                                {{ paciente.contato_emergencia }}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-exclamation-triangle me-3 text-muted"></i>
+                                <span class="text-break">{{ paciente.contato_emergencia }}</span>
                             </div>
                             {% endif %}
                         </div>
 
-                        <div class="cadastro-info">
+                        <div class="mt-3 pt-2 border-top">
                             <small class="text-muted">
-                                Cadastrado em: {{ paciente.data_cadastro|date:"d/m/Y" }}
+                                <i class="bi bi-calendar me-1"></i>{% if paciente.data_cadastro %}
+                        Cadastrado em: {{ paciente.data_cadastro|date:"d/m/Y" }}
+                    {% else %}
+                        Data de cadastro não disponível
+                    {% endif %}
                             </small>
                         </div>
-                    </div>
-
-                    <div class="paciente-card-actions">
-                        <a href="{% url 'ver_paciente' paciente.id %}" class="btn btn-sm btn-outline">
-                            <i class="bi bi-eye"></i> Ver
-                        </a>
-                        <a href="{% url 'editar_paciente' paciente.id %}" class="btn btn-sm btn-outline">
-                            <i class="bi bi-pencil"></i> Editar
-                        </a>
-                        <button class="btn btn-sm btn-outline-danger excluir-paciente"
-                            data-paciente-id="{{ paciente.id }}" data-paciente-nome="{{ paciente.nome_completo }}">
-                            <i class="bi bi-trash"></i> Excluir
-                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -177,13 +202,13 @@
 
             {% else %}
             <!-- Estado Vazio -->
-            <div class="empty-state text-center">
-                <div class="empty-icon">
-                    <i class="bi bi-people" style="font-size: 4rem; color: var(--text-muted);"></i>
+            <div class="text-center py-5">
+                <div class="empty-icon mb-3">
+                    <i class="bi bi-people" style="font-size: 4rem; color: #6c757d;"></i>
                 </div>
-                <h4>Nenhum paciente cadastrado</h4>
-                <p class="text-muted">Comece cadastrando seu primeiro paciente.</p>
-                <a href="{% url 'paciente_form' %}" class="btn btn-primary mt-3">
+                <h4 class="text-muted">Nenhum paciente cadastrado</h4>
+                <p class="text-muted mb-4">Comece cadastrando seu primeiro paciente.</p>
+                <a href="{% url 'paciente_form' %}" class="btn btn-primary">
                     <i class="bi bi-person-plus"></i> Cadastrar Primeiro Paciente
                 </a>
             </div>
@@ -192,251 +217,204 @@
     </div>
 </div>
 
-
-
 <style>
+    .card{
+        margin-top: 4em;
+    }
     .pacientes-list-section {
-        margin-top: var(--space-lg);
+        margin-top: 1.5rem;
     }
 
     .section-title {
-        color: var(--primary);
-        margin-bottom: var(--space-md);
+        color: #2c7fb8;
+        margin-bottom: 1rem;
         font-size: 1.3rem;
         font-weight: 600;
     }
 
-    /* Tabela Desktop */
-    .desktop-table {
-        display: block;
-    }
-
-    .table {
-        width: 100%;
-        background: var(--surface);
-        border-radius: var(--radius);
-        overflow: hidden;
-        box-shadow: var(--shadow);
-    }
-
+    .table td,
     .table th {
-        background: var(--primary);
-        color: white;
-        font-weight: 600;
-        padding: var(--space-sm);
+        padding: 12px 8px;
+        white-space: nowrap;
     }
 
-    .table td {
-        padding: var(--space-sm);
-        vertical-align: middle;
-        border-bottom: 1px solid var(--border-light);
-    }
+    /* Colunas com larguras adequadas */
+    .table th:nth-child(1) { width: 20%; }
+    .table th:nth-child(2) { width: 8%; }
+    .table th:nth-child(3) { width: 12%; }
+    .table th:nth-child(4) { width: 20%; }
+    .table th:nth-child(5) { width: 15%; }
+    .table th:nth-child(6) { width: 10%; }
+    .table th:nth-child(7) { width: 15%; }
 
-    .idade-badge {
-        background: var(--primary-light);
-        color: var(--primary);
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-
-    .sexo-badge {
-        background: var(--background-alt);
-        color: var(--text-muted);
-        padding: 2px 6px;
-        border-radius: 8px;
-        font-size: 0.7rem;
-    }
-
-    .email-link {
-        color: var(--primary);
-        text-decoration: none;
-    }
-
-    .email-link:hover {
-        text-decoration: underline;
+    /* Quebra de texto no e-mail e nome */
+    .table td:nth-child(1),
+    .table td:nth-child(4) {
+        white-space: normal;
+        word-break: break-word;
+        min-width: 150px;
     }
 
     .actions-buttons {
         display: flex;
-        gap: var(--space-xs);
+        gap: 8px;
+        flex-wrap: nowrap;
     }
 
-    .actions-buttons .btn {
-        padding: var(--space-xs);
-        font-size: 0.8rem;
+    .paciente-row:hover {
+        background-color: #f8f9fa;
     }
 
-    /* Cards Mobile */
-    .mobile-cards {
+    .btn-group .btn {
+        border-radius: 0.375rem;
+    }
+
+    /* Esconde uma visualização por vez */
+    .mobile-view {
         display: none;
-        flex-direction: column;
-        gap: var(--space-md);
     }
 
-    .paciente-card {
-        background: var(--surface);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius);
-        padding: var(--space-md);
-        box-shadow: var(--shadow);
+    /* DROPDOWN ESPECÍFICO PARA PACIENTES - SEM AFETAR O HEADER */
+    .paciente-card .dropdown {
+        position: relative;
     }
 
-    .paciente-card-header {
-        margin-bottom: var(--space-sm);
+    .paciente-card .dropdown-menu {
+        position: absolute;
+        right: 0;
+        left: auto;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        z-index: 1060;
+        margin-top: 0.125rem;
     }
 
-    .patient-info h4 {
-        margin-bottom: 8px;
-        color: var(--primary);
+    /* Mantém dropdown aberto ao passar mouse - APENAS para pacientes */
+    .paciente-card .dropdown:hover .dropdown-menu {
+        display: block;
     }
 
-    .patient-meta {
-        display: flex;
-        gap: var(--space-xs);
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
-    .contact-info {
-        margin-bottom: var(--space-sm);
-    }
-
-    .contact-item {
-        display: flex;
-        align-items: center;
-        gap: var(--space-xs);
-        margin-bottom: var(--space-xs);
-        font-size: 0.9rem;
-    }
-
-    .contact-item i {
-        color: var(--text-muted);
-        width: 16px;
-    }
-
-    .cadastro-info {
-        margin-top: var(--space-sm);
-    }
-
-    .paciente-card-actions {
-        display: flex;
-        gap: var(--space-xs);
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-
-    .paciente-card-actions .btn {
-        flex: 1;
-        text-align: center;
-        font-size: 0.8rem;
-    }
-
-    /* Estado Vazio */
-    .empty-state {
-        padding: var(--space-xl);
-        background: var(--background-alt);
-        border-radius: var(--radius);
-        border: 2px dashed var(--border-light);
-    }
-
-    .empty-icon {
-        margin-bottom: var(--space-md);
-    }
-
-    .empty-state h4 {
-        color: var(--text-primary);
-        margin-bottom: var(--space-sm);
-    }
-
-    /* Responsividade */
     @media (max-width: 768px) {
-        .desktop-table {
+        .desktop-view {
             display: none;
         }
 
-        .mobile-cards {
-            display: flex;
+        .mobile-view {
+            display: block;
         }
 
-        .paciente-card-actions {
-            flex-direction: column;
+        .paciente-card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: visible;
         }
 
-        .paciente-card-actions .btn {
-            flex: none;
+        .contact-info {
+            font-size: 0.9rem;
+        }
+
+        /* Ajuste do dropdown para mobile */
+        .paciente-card .dropdown-menu {
+            right: 0;
+            left: 0;
+            min-width: 160px;
         }
     }
 
     @media (max-width: 480px) {
         .d-flex.justify-content-between {
             flex-direction: column;
-            align-items: stretch;
+            gap: 1rem;
         }
 
         .search-box {
             max-width: 100% !important;
-            margin-bottom: var(--space-sm);
         }
 
-        .paciente-card {
-            padding: var(--space-sm);
+        .paciente-card .dropdown-menu {
+            right: 0;
+            left: auto;
+            min-width: 140px;
         }
     }
 </style>
+{% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Busca em tempo real
-    const searchInput = document.getElementById('searchInput');
-    const searchButton = document.getElementById('searchButton');
-    const pacienteRows = document.querySelectorAll('.paciente-row, .paciente-card');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Busca em tempo real
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const pacienteRows = document.querySelectorAll('.paciente-row, .paciente-card');
 
-    function filterPacientes() {
-        const searchTerm = searchInput.value.toLowerCase();
-        pacienteRows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        function filterPacientes() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+
+            pacienteRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', filterPacientes);
+        searchButton.addEventListener('click', filterPacientes);
+
+        // Exclusão com confirmação
+        const deleteButtons = document.querySelectorAll('.excluir-paciente');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                const pacienteId = this.getAttribute('data-paciente-id');
+                const nome = this.getAttribute('data-paciente-nome');
+
+                if (confirm(`Tem certeza que deseja excluir o paciente "${nome}"?\n\nEsta ação não pode ser desfeita.`)) {
+                    fetch(`/pacientes/excluir/${pacienteId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Erro ao excluir paciente: ' + (data.error || 'Erro desconhecido'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro:', error);
+                            alert('Erro ao excluir paciente. Tente novamente.');
+                        });
+                }
+            });
         });
-    }
 
-    searchInput.addEventListener('input', filterPacientes);
-    searchButton.addEventListener('click', filterPacientes);
-
-    // Exclusão com confirm simples
-    const deleteButtons = document.querySelectorAll('.excluir-paciente');
-    
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const pacienteId = this.getAttribute('data-paciente-id');
-            const nome = this.getAttribute('data-paciente-nome');
-            
-            if (confirm(`Tem certeza que deseja excluir o paciente "${nome}"? Esta ação não pode ser desfeita.`)) {
-                fetch(`/pacientes/excluir/${pacienteId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Erro ao excluir: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    alert('Erro ao excluir paciente: ' + error);
-                });
+        // Detecta automaticamente se é mobile ou desktop
+        function checkViewMode() {
+            if (window.innerWidth <= 768) {
+                document.querySelector('.desktop-view').style.display = 'none';
+                document.querySelector('.mobile-view').style.display = 'block';
+            } else {
+                document.querySelector('.desktop-view').style.display = 'block';
+                document.querySelector('.mobile-view').style.display = 'none';
             }
-        });
-    });
-});
-</script>
-{% endblock %}
+        }
 
+        checkViewMode();
+        window.addEventListener('resize', checkViewMode);
+    });
+</script>
 {% endblock %}
